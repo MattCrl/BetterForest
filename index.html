@@ -397,7 +397,8 @@ function roundTree(st, pals, o={}){
   const b=RT[st], bark=o.bark||'bark', seed=(o.seed||'t')+st;
   const g={cx:50, cy:b.cy*(o.dy||1), rx:b.rx*(o.wx||1), ry:b.ry*(o.wy||1)};
   if(o.wy>1) g.cy = b.cy - b.ry*(o.wy-1)*.6;
-  let s = trunk(50, b.ty, b.wb, b.wt, bark);
+  /* le tronc monte toujours jusque dans le feuillage (pas de trou entre les deux) */
+  let s = trunk(50, Math.min(b.ty, g.cy + g.ry*.3), b.wb, b.wt, bark);
   if(o.trunkExtra) s += o.trunkExtra(b);
   if(st>1) s += branch(50,b.ty+8, 50-g.rx*.25,b.ty-2, 50-g.rx*.55,g.cy+g.ry*.35, b.wb*.32, bark) + branch(50,b.ty+4, 50+g.rx*.22,b.ty-4, 50+g.rx*.5,g.cy+g.ry*.25, b.wb*.28, bark);
   s += canopy(g.cx, g.cy, g.rx, g.ry, pals, {n:b.n, seed, r0:g.rx*.31, r1:g.rx*.46, sparkle:o.sparkle?o.sparkle*st:0});
