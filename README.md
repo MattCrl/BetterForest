@@ -1,4 +1,4 @@
-# Bosquet 🌱
+# BetterForest 🌱
 
 Minuteur de concentration : fais pousser des arbres pendant que tu te concentres.
 Application web installable (PWA), données stockées uniquement sur l'appareil.

@@ -1,6 +1,6 @@
 {
-  "name": "Bosquet",
-  "short_name": "Bosquet",
+  "name": "BetterForest",
+  "short_name": "BetterForest",
   "description": "Reste concentré, fais pousser ta forêt.",
   "start_url": "./",
   "scope": "./",

@@ -12,4 +12,4 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' });
     res.end(data);
   });
-}).listen(port, '0.0.0.0', () => console.log(`Bosquet sur http://localhost:${port}`));
+}).listen(port, '0.0.0.0', () => console.log(`BetterForest sur http://localhost:${port}`));

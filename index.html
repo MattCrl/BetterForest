@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Bosquet">
+<meta name="apple-mobile-web-app-title" content="BetterForest">
 <meta name="theme-color" content="#f3efe4">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
-<title>Bosquet</title>
+<title>BetterForest</title>
 <style>
 :root{--bg:#f3efe4;--card:#fffdf7;--ink:#2b3a2f;--muted:#7b8a7e;--green:#3f8f5a;--green-d:#2f6b4f;--accent:#e9a821;--danger:#d9544d;--line:#e4ddcc}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -179,7 +179,7 @@ input[type=color]{width:38px;height:36px;border:0;padding:0;background:none}
 <body>
 <div id="app">
   <header>
-    <div class="brand">🌱 Bosquet</div>
+    <div class="brand">🌱 BetterForest</div>
     <div class="coins"><span class="coin"></span><span id="coins">0</span></div>
   </header>
   <main>
@@ -269,7 +269,7 @@ input[type=color]{width:38px;height:36px;border:0;padding:0;background:none}
         <div class="row"><div><div>Importer une sauvegarde</div></div><label class="btn sm light">Importer<input type="file" id="importInp" accept="application/json,.json" hidden></label></div>
         <div class="row"><div><div style="color:var(--danger)">Tout effacer</div></div><button class="btn sm danger" id="resetBtn">Effacer</button></div>
       </div>
-      <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px">Bosquet · v0.1 · données stockées sur cet appareil</p>
+      <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px">BetterForest · v0.2 · données stockées sur cet appareil</p>
     </section>
   </main>
   <nav class="tabs"><div class="inner" id="tabs"></div></nav>
@@ -1228,7 +1228,7 @@ $('#tagMgr').onclick=ev=>{
 };
 $('#exportBtn').onclick=()=>{
   const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}), a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download=`bosquet-${dayKey(new Date())}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  a.href=URL.createObjectURL(blob); a.download=`betterforest-${dayKey(new Date())}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 };
 $('#importInp').onchange=async ev=>{
   const f=ev.target.files[0]; if(!f) return;
