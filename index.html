@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bosquet">
+<meta name="theme-color" content="#f3efe4">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Bosquet</title>
+<style>
+:root{--bg:#f3efe4;--card:#fffdf7;--ink:#2b3a2f;--muted:#7b8a7e;--green:#3f8f5a;--green-d:#2f6b4f;--accent:#e9a821;--danger:#d9544d;--line:#e4ddcc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Roboto,sans-serif;transition:background .4s,color .4s}
+body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+button{font-family:inherit;cursor:pointer}
+#app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+.brand{font-weight:800;font-size:21px;color:var(--green-d);letter-spacing:.3px}
+.coins{color:var(--ink);background:var(--card);border-radius:999px;padding:6px 12px 6px 8px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe27a,#e9a821 60%,#c98a10);display:inline-block;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15)}
+main{flex:1;padding:0 16px calc(92px + env(safe-area-inset-bottom))}
+.view{display:none}.view.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav.tabs .inner{display:flex;max-width:520px;width:100%}
+nav.tabs button{flex:1;background:none;border:0;padding:9px 0 7px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.tabs button.active{color:var(--green-d);font-weight:700}
+nav.tabs svg{width:24px;height:24px}
+h2{font-size:19px;margin:6px 2px 12px}
+h3{font-size:15px;margin:18px 2px 8px;color:var(--muted);font-weight:600}
+.card{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+
+/* ---- Planter ---- */
+.plant-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:4px}
+.ring{position:relative;width:300px;height:300px;touch-action:none}
+.ring svg.r{position:absolute;inset:0;width:100%;height:100%}
+.ring .tree{position:absolute;left:50%;top:50%;width:196px;height:235px;transform:translate(-50%,-56%);pointer-events:none}
+.ring .tree svg{width:100%;height:100%}
+.hint{font-size:12px;color:var(--muted);margin-top:-6px;min-height:15px}
+.time{font-size:58px;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:1px;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:0;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.btn{background:var(--green);color:#fff;border:0;border-radius:999px;padding:14px 40px;font-size:17px;font-weight:700;box-shadow:0 4px 0 var(--green-d);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--green-d)}
+.btn.ghost{background:transparent;color:#fff;box-shadow:none;border:2px solid rgba(255,255,255,.7)}
+.btn.danger{background:var(--danger);box-shadow:0 4px 0 #a83a34}
+.btn.light{background:#e9e4d6;color:var(--ink);box-shadow:0 4px 0 #cfc7b3}
+.btn.sm{padding:9px 18px;font-size:14px}
+.quote{color:rgba(255,255,255,.85);font-style:italic;text-align:center;max-width:310px;min-height:42px;font-size:15px}
+.focus-only{display:none}
+body.focusing{--bg:#2f6b4f;color:#fff}
+body.focusing .focus-only{display:block}
+body.focusing .idle-only{display:none!important}
+body.focusing nav.tabs{display:none}
+body.focusing .brand{color:#fff}
+body.focusing .chip{background:rgba(255,255,255,.15);color:#fff;box-shadow:none}
+body.breaking{--bg:#2f5f7a}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.chip.off{opacity:.55}
+.phase{font-size:14px;font-weight:600;opacity:.85;text-align:center;letter-spacing:.3px}
+.fbtns{display:flex;gap:10px;justify-content:center}
+.fbtns .btn{padding:12px 22px;font-size:15px;white-space:nowrap}
+.ring .cup{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:96px;pointer-events:none}
+.goal{width:100%;background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-top:4px}
+.goal .top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px}
+.goal .track{height:10px;background:#eee8da;border-radius:6px;overflow:hidden}
+.goal .track i{display:block;height:100%;border-radius:6px;background:var(--green);transition:width .4s}
+.goal.done .track i{background:var(--accent)}
+.ach{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ach .a{background:var(--card);border-radius:16px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ach .a.lock{opacity:.62}
+.ach .a.lock .ic{filter:grayscale(1)}
+.ach .ic{font-size:26px;line-height:1}
+.ach .nm{font-weight:700;font-size:14px;margin-top:6px}
+.ach .ds{font-size:12px;color:var(--muted);min-height:30px;margin-top:2px}
+.ach .pr{font-size:11px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;align-items:center}
+.ach .mini{height:5px;background:#eee8da;border-radius:4px;overflow:hidden;margin-top:5px}
+.ach .mini i{display:block;height:100%;background:var(--green)}
+.favs{width:100%;margin-top:2px}
+.favs .hd{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:600;margin:4px 4px 6px}
+.favs .hd button{border:0;background:none;color:var(--green-d);font-weight:700;font-size:13px;padding:4px}
+.favrow{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none;-webkit-touch-callout:none}
+.favrow::-webkit-scrollbar{display:none}
+.fav{flex:0 0 auto;display:flex;align-items:center;gap:8px;background:var(--card);border:0;border-radius:16px;padding:8px 16px 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,.08);text-align:left;color:var(--ink);transition:transform .1s}
+.fav:active{transform:scale(.96)}
+.fav svg{width:34px;height:41px;flex:none}
+.fav .fn{font-weight:700;font-size:14px;white-space:nowrap}
+.fav .fs{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:5px;margin-top:2px}
+.fav.add{border:2px dashed #cfc7b3;background:transparent;box-shadow:none;color:var(--muted);padding:12px 16px;font-weight:600;font-size:14px}
+.ring{cursor:pointer}
+.hint b{color:var(--accent);letter-spacing:1px}
+.treegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 16px}
+.treegrid button{background:#f6f1e3;border:2px solid transparent;border-radius:14px;padding:6px 4px 8px;font-size:12px;color:var(--ink)}
+.treegrid button.sel{border-color:var(--green);font-weight:700}
+.treegrid svg{width:64px;height:77px;display:block;margin:0 auto}
+.iconbtn{border:0;background:#f0eadb;width:34px;height:34px;border-radius:50%;font-size:17px;color:var(--ink);flex:none}
+.iconbtn:disabled{opacity:.3}
+.modal input[type=text]{width:100%;margin:10px 0 16px;font-size:16px}
+.stages{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin-bottom:6px}
+.stages div{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted)}
+.stages svg{width:84px;height:100px}
+.modal .rw{background:#f6f1e3;border-radius:12px;padding:9px 12px;margin:6px 0;font-weight:600;font-size:14px;text-align:left}
+
+/* ---- Forêt / Stats ---- */
+.seg{display:flex;background:#e7e1d1;border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:none;padding:8px 0;border-radius:9px;font-size:14px;color:var(--muted);font-weight:600}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.rnav{display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px}
+.rnav button{border:0;background:var(--card);width:36px;height:36px;border-radius:50%;font-size:18px;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.rnav button:disabled{opacity:.35}
+.rnav .lbl{font-weight:700;text-transform:capitalize}
+.island{width:100%;display:block;margin:6px 0}
+.island-box{background:radial-gradient(120% 90% at 50% 10%,#eef8fb 0%,#dcefe9 55%,#efe9da 100%);border-radius:20px;padding:12px 4px 6px;position:relative;min-height:220px}
+.summary{display:flex;justify-content:space-around;text-align:center;padding:6px 0 2px;font-size:13px;color:var(--muted)}
+.summary b{display:block;font-size:19px;color:var(--ink)}
+.sess{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.sess:last-child{border:0}
+.sess svg{width:34px;height:41px;flex:none}
+.sess .m{flex:1;min-width:0}
+.sess .t{font-weight:600;font-size:14px}
+.sess .s{font-size:12px;color:var(--muted)}
+.sess .d{font-weight:700;font-variant-numeric:tabular-nums}
+.sess .del{border:0;background:none;color:var(--muted);font-size:18px;padding:4px}
+.empty{color:var(--muted);text-align:center;padding:18px;font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-size:22px;font-weight:800;margin-top:2px}
+.bars{display:flex;align-items:flex-end;gap:2px;height:130px;padding-top:6px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.bars .b i{display:block;width:100%;max-width:22px;background:var(--green);border-radius:4px 4px 1px 1px;min-height:1px}
+.bars .b i.zero{background:#e4ddcc}
+.bars .b span{font-size:10px;color:var(--muted);height:12px}
+.hbar{margin:9px 0}
+.hbar .top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.hbar .track{height:9px;background:#eee8da;border-radius:6px;overflow:hidden}
+.hbar .track i{display:block;height:100%;border-radius:6px}
+
+/* ---- Arbres ---- */
+.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.item{background:var(--card);border-radius:16px;padding:8px 6px 10px;text-align:center;border:2px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.item svg{width:78px;height:94px}
+.item .n{font-weight:700;font-size:13px}
+.item .p{font-size:12px;color:var(--muted);display:flex;gap:4px;justify-content:center;align-items:center;margin-top:3px}
+.item.sel{border-color:var(--green)}
+.item.locked svg{filter:grayscale(.85) opacity(.55)}
+
+/* ---- Réglages ---- */
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--line);gap:10px}
+.row:last-child{border:0}
+.row .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.sw{position:relative;width:50px;height:30px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#d6cfbd;border-radius:30px;transition:.2s}
+.sw span:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw input:checked+span{background:var(--green)}
+.sw input:checked+span:before{transform:translateX(20px)}
+input[type=text],input[type=number],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+input[type=color]{width:38px;height:36px;border:0;padding:0;background:none}
+
+/* ---- Modal / toast ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(20,30,25,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50;animation:fade .2s}
+.modal{background:var(--card);color:var(--ink);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom));animation:up .25s;text-align:center;max-height:85vh;overflow:auto}
+.modal h3{color:var(--ink);font-size:20px;margin:4px 0 8px}
+.modal p{color:var(--muted);margin:6px 0 16px}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.modal .big svg{width:130px;height:156px}
+.taglist button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:13px 6px;font-size:16px;color:var(--ink);border-bottom:1px solid var(--line);text-align:left}
+.taglist button.on{font-weight:700}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:#2b3a2f;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;animation:fade .2s;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">🌱 Bosquet</div>
+    <div class="coins"><span class="coin"></span><span id="coins">0</span></div>
+  </header>
+  <main>
+    <!-- PLANTER -->
+    <section class="view active" id="v-plant">
+      <div class="plant-wrap">
+        <div class="seg idle-only" id="modeSeg" style="width:240px"><button data-m="timer">⏳ Minuteur</button><button data-m="chrono">⏱️ Chrono</button></div>
+        <div class="quote focus-only" id="quote"></div>
+        <div class="ring" id="ring">
+          <svg class="r" viewBox="0 0 300 300" id="ringSvg"></svg>
+          <div class="tree" id="ringTree"></div>
+        </div>
+        <div class="hint idle-only" id="hint"></div>
+        <div class="phase focus-only" id="phase"></div>
+        <div class="chips"><button class="chip" id="tagChip"></button><button class="chip idle-only" id="pomoChip"></button></div>
+        <div class="time" id="time">25:00</div>
+        <button class="btn idle-only" id="plantBtn">Planter</button>
+        <div class="favs idle-only" id="favs"></div>
+        <div class="focus-only"><div class="fbtns">
+          <button class="btn ghost" id="giveUpBtn">Abandonner</button>
+          <button class="btn ghost" id="endBtn">Terminer</button>
+          <button class="btn ghost" id="skipBtn">Passer la pause</button>
+          <button class="btn ghost" id="stopBtn">Arrêter</button>
+        </div></div>
+        <div class="goal idle-only" id="goalBox"></div>
+      </div>
+    </section>
+
+    <!-- FORÊT -->
+    <section class="view" id="v-forest">
+      <h2>Ma forêt</h2>
+      <div class="seg" id="fSeg"></div>
+      <div class="rnav"><button id="fPrev">‹</button><span class="lbl" id="fLbl"></span><button id="fNext">›</button></div>
+      <div class="island-box" id="island"></div>
+      <div class="summary" id="fSum"></div>
+      <h3>Sessions</h3>
+      <div class="card" id="fList"></div>
+    </section>
+
+    <!-- STATS -->
+    <section class="view" id="v-stats">
+      <h2>Statistiques</h2>
+      <div class="seg" id="sSeg"></div>
+      <div class="rnav"><button id="sPrev">‹</button><span class="lbl" id="sLbl"></span><button id="sNext">›</button></div>
+      <div class="grid2" id="sCards"></div>
+      <h3>Répartition du temps</h3>
+      <div class="card"><div class="bars" id="sBars"></div></div>
+      <h3>Par étiquette</h3>
+      <div class="card" id="sTags"></div>
+      <h3>Par espèce</h3>
+      <div class="card" id="sTrees"></div>
+      <h3>Depuis le début</h3>
+      <div class="grid2" id="sAll"></div>
+      <h3 id="achTitle">Succès</h3>
+      <div class="ach" id="sAch"></div>
+    </section>
+
+    <!-- ARBRES -->
+    <section class="view" id="v-shop">
+      <h2>Arbres</h2>
+      <p style="color:var(--muted);margin:-6px 2px 14px;font-size:14px">1 minute de concentration réussie = 1 pièce. Touche un arbre pour le choisir ou le débloquer.</p>
+      <div class="shop" id="shop"></div>
+    </section>
+
+    <!-- RÉGLAGES -->
+    <section class="view" id="v-settings">
+      <h2>Réglages</h2>
+      <div class="card">
+        <div class="row"><div><div>Mode strict</div><div class="sub">L'arbre meurt si tu quittes l'app plus de <span id="graceLbl">10</span> s pendant une session.</div></div><label class="sw"><input type="checkbox" id="setStrict"><span></span></label></div>
+        <div class="row"><div><div>Délai de tolérance</div><div class="sub">Secondes autorisées hors de l'app</div></div><input type="number" id="setGrace" min="0" max="120" style="width:70px"></div>
+        <div class="row"><div><div>Son de fin</div></div><label class="sw"><input type="checkbox" id="setSound"><span></span></label></div>
+        <div class="row"><div><div>Garder l'écran allumé</div><div class="sub">Pendant une session</div></div><label class="sw"><input type="checkbox" id="setWake"><span></span></label></div>
+      </div>
+      <h3>Objectif & Pomodoro</h3>
+      <div class="card">
+        <div class="row"><div><div>Objectif quotidien</div><div class="sub">Minutes de concentration par jour (+20 pièces quand il est atteint)</div></div><input type="number" id="setGoal" min="10" max="600" step="5" style="width:76px"></div>
+        <div class="row"><div><div>Pause courte</div><div class="sub">Minutes</div></div><input type="number" id="setShort" min="1" max="30" style="width:70px"></div>
+        <div class="row"><div><div>Pause longue</div><div class="sub">Minutes</div></div><input type="number" id="setLong" min="1" max="60" style="width:70px"></div>
+        <div class="row"><div><div>Pause longue tous les</div><div class="sub">Cycles</div></div><input type="number" id="setEvery" min="2" max="10" style="width:70px"></div>
+        <div class="row"><div><div>Enchaîner automatiquement</div><div class="sub">Relance la concentration après chaque pause</div></div><label class="sw"><input type="checkbox" id="setAuto"><span></span></label></div>
+      </div>
+      <h3>Étiquettes</h3>
+      <div class="card" id="tagMgr"></div>
+      <h3>Données</h3>
+      <div class="card">
+        <div class="row"><div><div>Exporter une sauvegarde</div><div class="sub">Fichier JSON de toute ta forêt</div></div><button class="btn sm light" id="exportBtn">Exporter</button></div>
+        <div class="row"><div><div>Importer une sauvegarde</div></div><label class="btn sm light">Importer<input type="file" id="importInp" accept="application/json,.json" hidden></label></div>
+        <div class="row"><div><div style="color:var(--danger)">Tout effacer</div></div><button class="btn sm danger" id="resetBtn">Effacer</button></div>
+      </div>
+      <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px">Bosquet · v0.1 · données stockées sur cet appareil</p>
+    </section>
+  </main>
+  <nav class="tabs"><div class="inner" id="tabs"></div></nav>
+</div>
+
+<script>
+/* =========================================================
+   Données & persistance
+   ========================================================= */
+const STORE = 'bosquet-v1';
+const DEFAULT = {
+  coins: 100, unlocked: ['oak', 'pine'], tree: 'oak', duration: 25, tag: 'study',
+  tags: [
+    {id:'study', name:'Étude',   color:'#4a90d9'},
+    {id:'work',  name:'Travail', color:'#e8743b'},
+    {id:'read',  name:'Lecture', color:'#9b6bd6'},
+    {id:'sport', name:'Sport',   color:'#3fae6a'},
+    {id:'other', name:'Autre',   color:'#9aa39c'}
+  ],
+  sessions: [], active: null,
+  mode: 'timer', favs: [], brk: null, cycle: 0, maxCycle: 0, ach: {}, goalDays: {},
+  settings: {strict:false, grace:10, sound:true, wake:true, goal:60, pomo:false, short:5, long:15, every:4, auto:true}
+};
+const CHRONO_MIN = 10, CHRONO_FULL = 30*60000, CHRONO_MAX = 180*60000, GOAL_BONUS = 20;
+let S = load();
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(STORE));
+    if(d) return Object.assign(structuredClone(DEFAULT), d, {settings:Object.assign({}, DEFAULT.settings, d.settings||{})});
+  }catch(e){}
+  return structuredClone(DEFAULT);
+}
+function save(){ localStorage.setItem(STORE, JSON.stringify(S)); }
+const $ = s => document.querySelector(s);
+const tagOf = id => S.tags.find(t=>t.id===id) || {id, name:'Sans étiquette', color:'#bbb'};
+
+/* =========================================================
+   Arbres — illustrations originales en SVG (viewBox 0 0 100 120, pied de l'arbre en y=110)
+   Moteur : dégradés partagés (définis une seule fois), feuillage en touffes ombrées,
+   feuilles, fleurs, fruits. 3 stades par espèce.
+   ========================================================= */
+const PAL = {
+  bark:['#c08a58','#8b5a2b','#55331a'], dead:['#c9bcad','#9a8a78','#665849'], birch:['#ffffff','#eeebe3','#c3bdaf'], baobab:['#d8b48e','#a27e5d','#6b4f39'],
+  oak:['#c2ec84','#66b545','#2b7231'], oak2:['#9fd86c','#4c9a39','#215f2a'],
+  pine:['#86d69b','#2f9162','#145640'], pine2:['#7cc7a0','#26805c','#0f4936'],
+  bir:['#f6f08e','#c2d955','#7ea22f'], bir2:['#e3ec80','#a2c746','#638c29'],
+  cher:['#ffe6f0','#f8abc9','#d9699a'], cher2:['#ffd3e4','#f08fb7','#c45282'], blossom:['#ffffff','#fff0f6','#f6bfd5'],
+  mapR:['#ffa077','#e84a2c','#9e2419'], mapO:['#ffcb73','#f3812c','#b5461a'], mapY:['#ffe991','#f5bd36','#c27e18'],
+  lemL:['#a3dd86','#3f9b4b','#1b6131'], lemon:['#fff8a8','#f8d532','#cc9512'],
+  will:['#d4f29e','#8ccd5f','#4a8733'], palm:['#b1e679','#4cb04e','#1f6b37'], bam:['#dcf094','#93c641','#547d21'], bamL:['#bce884','#62b341','#2c6c27'],
+  cac:['#b7e8a2','#5daf64','#2a6d40'], pink:['#ffd0e3','#f57fab','#c44374'],
+  sunP:['#fff394','#f9c62c','#d9850d'], sunC:['#b07a42','#6b421f','#3a210d'], stem:['#a3d977','#4f9b3d','#2a6623'],
+  cap:['#ffa48b','#e6483b','#9b2520'], capO:['#ffc893','#ef7d3b','#ad471b'], mstem:['#ffffff','#f4ecda','#c9b894'],
+  snow:['#ffffff','#f3f9fd','#cadeea'], bao:['#c2e283','#7aa843','#446d28'],
+  jac:['#efdcff','#b384ea','#7046b3'], jac2:['#dfc6ff','#9a68da','#5a3496'], gin:['#fff5a6','#f6d23d','#c99417'], gin2:['#fceb80','#eabb2e','#b37f12'],
+  soil:['#a8754c','#7d5232','#4b2f1b'], grass:['#b2e785','#6fc252','#3d8d36'],
+  soilL:['#7a4e2f','#623e24','#432815'], soilR:['#9a6a44','#82562f','#5e3b20'], grassTop:['#c0ee93','#8fd46a','#69b84f']
+};
+const SVG_DEFS = (()=>{
+  let d='';
+  for(const [k,[l,b,dk]] of Object.entries(PAL)){
+    d+=`<radialGradient id="gr-${k}" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="${l}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${dk}"/></radialGradient>`+
+       `<linearGradient id="gl-${k}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="${l}"/><stop offset=".45" stop-color="${b}"/><stop offset="1" stop-color="${dk}"/></linearGradient>`+
+       `<linearGradient id="gv-${k}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${l}"/><stop offset=".5" stop-color="${b}"/><stop offset="1" stop-color="${dk}"/></linearGradient>`;
+  }
+  d+=`<radialGradient id="gr-shadow"><stop offset="0" stop-color="#1e3020" stop-opacity=".32"/><stop offset=".6" stop-color="#1e3020" stop-opacity=".14"/><stop offset="1" stop-color="#1e3020" stop-opacity="0"/></radialGradient>`;
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${d}</defs></svg>`;
+})();
+document.body.insertAdjacentHTML('afterbegin', SVG_DEFS);
+
+const G=k=>`url(#gr-${k})`, GL=k=>`url(#gl-${k})`, GV=k=>`url(#gv-${k})`;
+const lt=k=>PAL[k][0], md=k=>PAL[k][1], dk=k=>PAL[k][2];
+const f1=n=>Math.round(n*10)/10;
+const circ=(x,y,r,fill,ex='')=>`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="${fill}"${ex}/>`;
+const ell=(x,y,rx,ry,fill,rot=0,ex='')=>`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="${fill}"${rot?` transform="rotate(${f1(rot)} ${f1(x)} ${f1(y)})"`:''}${ex}/>`;
+const pth=(d,fill,ex='')=>`<path d="${d}" fill="${fill}"${ex}/>`;
+const strk=(d,col,w,op=1)=>`<path d="${d}" stroke="${col}" stroke-width="${f1(w)}" fill="none" stroke-linecap="round" stroke-linejoin="round"${op<1?` opacity="${op}"`:''}/>`;
+const OP = o => ` opacity="${o}"`;
+const qpt=(p0,c,p1,t)=>[(1-t)*(1-t)*p0[0]+2*(1-t)*t*c[0]+t*t*p1[0], (1-t)*(1-t)*p0[1]+2*(1-t)*t*c[1]+t*t*p1[1]];
+
+/* ---- briques de base ---- */
+function trunk(x, top, wb, wt, pal='bark', lean=0){
+  const h=110-top, xt=x+lean, y3=110-h*.3;
+  const d=`M${f1(x-wb/2-2.2)} 110 Q${f1(x-wb/2)} ${f1(110-h*.12)} ${f1(x-wb*.42)} ${f1(y3)} L${f1(xt-wt/2)} ${f1(top)} L${f1(xt+wt/2)} ${f1(top)} L${f1(x+wb*.42)} ${f1(y3)} Q${f1(x+wb/2)} ${f1(110-h*.12)} ${f1(x+wb/2+2.2)} 110Z`;
+  return pth(d, GL(pal)) + strk(`M${f1(x+wb*.14)} 107 L${f1(xt+wt*.12)} ${f1(top+h*.25)}`, dk(pal), Math.max(.6,wb*.09), .35);
+}
+const branch=(x1,y1,cx,cy,x2,y2,w,pal='bark')=>strk(`M${f1(x1)} ${f1(y1)} Q${f1(cx)} ${f1(cy)} ${f1(x2)} ${f1(y2)}`, md(pal), w);
+function canopy(cx,cy,rx,ry,pals,o={}){
+  pals=[].concat(pals);
+  const r=rng(o.seed||`c${cx}${cy}${rx}`), n=o.n||10, r0=o.r0||rx*.3, r1=o.r1||rx*.46, pk=()=>pals[Math.floor(r()*pals.length)];
+  const pts=[];
+  for(let i=0;i<n;i++){ const a=r()*Math.PI*2, d=Math.sqrt(r())*.74; pts.push({x:cx+Math.cos(a)*rx*d, y:cy+Math.sin(a)*ry*d, rad:r0+(r1-r0)*r(), p:pk()}); }
+  pts.push({x:cx,y:cy-ry*.6,rad:r1,p:pals[0]}, {x:cx-rx*.68,y:cy+ry*.12,rad:r0*1.05,p:pk()}, {x:cx+rx*.68,y:cy+ry*.12,rad:r0*1.05,p:pk()}, {x:cx,y:cy+ry*.45,rad:r0*1.15,p:pk()});
+  pts.sort((a,b)=>a.y-b.y);
+  /* bord bosselé : petites bosses sur le haut de chaque touffe */
+  const bumpy = (x,y,R,fill,angs,k) => circ(x,y,R,fill) + angs.map(a=>{ const t=a*Math.PI/180; return circ(x+Math.cos(t)*R*.78, y+Math.sin(t)*R*.78, R*k, fill); }).join('');
+  /* 1. silhouette sombre (ombre propre du feuillage) */
+  let s = ell(cx, cy+ry*.12, rx*.86, ry*.78, dk(pals[0]));
+  pts.forEach(q=> s += bumpy(q.x+q.rad*.06, q.y+q.rad*.1, q.rad, dk(q.p), [-160,-115,-65,-20,20,160], .36));
+  /* 2. masse principale, décalée vers la lumière (haut-gauche) */
+  pts.forEach(q=> s += bumpy(q.x-q.rad*.1, q.y-q.rad*.16, q.rad*.84, md(q.p), [-150,-100,-55,-10], .34));
+  /* 3. lumière sur les touffes du haut */
+  pts.forEach(q=>{ if(q.y < cy+ry*.12) s += bumpy(q.x-q.rad*.3, q.y-q.rad*.38, q.rad*.42, lt(q.p), [-140,-80], .42); });
+  /* 4. texture : petites feuilles sombres dans la masse, reflets clairs en haut */
+  pts.forEach(q=>{
+    const n2 = q.rad>7 ? 2 : 1;
+    for(let i=0;i<n2;i++){ const x=q.x+(r()-.2)*q.rad*.8, y=q.y+(r()+.1)*q.rad*.55; s += ell(x, y, q.rad*.12+.6, q.rad*.055+.35, dk(q.p), r()*70-35, OP(.42)); }
+    if(q.y < cy && r()<.7) s += ell(q.x-q.rad*.42, q.y-q.rad*.12, q.rad*.1+.5, q.rad*.05+.3, '#fff', -35, OP(.45));
+  });
+  if(o.sparkle) for(let i=0;i<o.sparkle;i++){ const a=r()*Math.PI*2, d=Math.sqrt(r())*.8; s+=ell(cx+Math.cos(a)*rx*d, cy+Math.sin(a)*ry*d, 1.3, .7, lt(pals[0]), r()*180, OP(.9)); }
+  return s;
+}
+const fruit=(x,y,r,p)=>circ(x+r*.15,y+r*.2,r,dk(p))+circ(x,y,r,G(p))+circ(x-r*.35,y-r*.38,r*.3,'#fff',OP(.75));
+const blossom=(x,y,r,p='blossom',c='#f7c84a')=>[0,72,144,216,288].map(a=>circ(x+Math.cos(a*Math.PI/180)*r*.55,y+Math.sin(a*Math.PI/180)*r*.55,r*.5,G(p))).join('')+circ(x,y,r*.26,c);
+function leaf(x,y,len,w,ang,p,rib=true){
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})">`+pth(`M0 0 Q${f1(len*.45)} ${f1(-w)} ${f1(len)} 0 Q${f1(len*.45)} ${f1(w)} 0 0Z`,G(p))+
+    (rib?strk(`M1 0 L${f1(len*.82)} 0`,lt(p),Math.max(.35,w*.13),.55):'')+'</g>';
+}
+const fallen=(cols,seed,n=5)=>{ const r=rng(seed); let s=''; for(let i=0;i<n;i++){ const x=30+r()*40, y=106+r()*5; s+=ell(x,y,2.4,1.1,cols[i%cols.length],r()*180,OP(.9)); } return s; };
+const scatter=(g,seed,n,k=.78)=>{ const r=rng(seed); return Array.from({length:n},()=>{ const a=r()*Math.PI*2, d=.25+Math.sqrt(r())*(k-.25); return [g.cx+Math.cos(a)*g.rx*d, g.cy+Math.sin(a)*g.ry*d]; }); };
+
+/* ---- arbre feuillu générique ---- */
+const RT=[null,{ty:84,wb:4.5,wt:2.4,cy:69,rx:13.5,ry:11.5,n:7},{ty:72,wb:8,wt:4.2,cy:55,rx:22,ry:18.5,n:11},{ty:66,wb:11,wt:5.8,cy:44,rx:31,ry:26,n:17}];
+function roundTree(st, pals, o={}){
+  const b=RT[st], bark=o.bark||'bark', seed=(o.seed||'t')+st;
+  const g={cx:50, cy:b.cy*(o.dy||1), rx:b.rx*(o.wx||1), ry:b.ry*(o.wy||1)};
+  if(o.wy>1) g.cy = b.cy - b.ry*(o.wy-1)*.6;
+  let s = trunk(50, b.ty, b.wb, b.wt, bark);
+  if(o.trunkExtra) s += o.trunkExtra(b);
+  if(st>1) s += branch(50,b.ty+8, 50-g.rx*.25,b.ty-2, 50-g.rx*.55,g.cy+g.ry*.35, b.wb*.32, bark) + branch(50,b.ty+4, 50+g.rx*.22,b.ty-4, 50+g.rx*.5,g.cy+g.ry*.25, b.wb*.28, bark);
+  s += canopy(g.cx, g.cy, g.rx, g.ry, pals, {n:b.n, seed, r0:g.rx*.31, r1:g.rx*.46, sparkle:o.sparkle?o.sparkle*st:0});
+  if(o.extra) s += o.extra(g, seed);
+  return s;
+}
+
+/* ---- conifère ---- */
+function tier(cx, top, bot, hw, p, snow){
+  const n=5, seg=hw*2/n, mid=(top+bot)/2; let sc='';
+  for(let i=0;i<n;i++){ const x0=cx-hw+i*seg; sc+=` Q${f1(x0+seg/2)} ${f1(bot+3.6)} ${f1(x0+seg)} ${f1(bot)}`; }
+  let s = pth(`M${cx} ${f1(top)} Q${f1(cx-hw*.28)} ${f1(mid)} ${f1(cx-hw)} ${f1(bot)}${sc} Q${f1(cx+hw*.28)} ${f1(mid)} ${cx} ${f1(top)}Z`, GL(p));
+  s += pth(`M${cx} ${f1(top)} Q${f1(cx+hw*.28)} ${f1(mid)} ${f1(cx+hw)} ${f1(bot)} Q${f1(cx+hw*.5)} ${f1(bot+3)} ${cx} ${f1(bot+2.4)}Z`, dk(p), OP(.32));
+  s += strk(`M${cx-1} ${f1(top+3)} Q${f1(cx-hw*.3)} ${f1(mid)} ${f1(cx-hw+2)} ${f1(bot-1)}`, lt(p), 1.2, .55);
+  if(snow){
+    const sh=(bot-top)*.38;
+    s += pth(`M${cx} ${f1(top)} Q${f1(cx-hw*.16)} ${f1(top+sh*.6)} ${f1(cx-hw*.34)} ${f1(top+sh)} Q${f1(cx-hw*.17)} ${f1(top+sh*.78)} ${cx} ${f1(top+sh*1.12)} Q${f1(cx+hw*.17)} ${f1(top+sh*.78)} ${f1(cx+hw*.34)} ${f1(top+sh)} Q${f1(cx+hw*.16)} ${f1(top+sh*.6)} ${cx} ${f1(top)}Z`, G('snow'));
+    let sd=`M${f1(cx-hw)} ${f1(bot)}${sc} L${f1(cx+hw-1)} ${f1(bot-2.6)}`;
+    for(let i=n-1;i>=0;i--){ const x0=cx-hw+i*seg; sd+=` Q${f1(x0+seg/2)} ${f1(bot-.6)} ${f1(i?x0:x0+1)} ${f1(bot-2.6)}`; }
+    s += pth(sd+'Z', '#ffffff') + pth(`M${f1(cx-hw)} ${f1(bot)}${sc}`, 'none', ` stroke="${dk('snow')}" stroke-width=".7" opacity=".7"`);
+  }
+  return s;
+}
+function pineTree(st, p, snow){
+  const tiers = st===1 ? [[62,98,14],[50,82,10]] : st===2 ? [[54,99,23],[39,81,18],[26,62,12]] : [[52,101,30],[37,85,25],[23,68,19],[11,50,12.5]];
+  let s = trunk(50, 92, st===1?4:st===2?6:8, st===1?3:4.5, 'bark');
+  tiers.forEach(([top,bot,hw],i)=>{ s += tier(50, top, bot, hw, i%2?p:(p==='pine'?'pine2':p), snow); });
+  const r=rng('pn'+st+snow);
+  if(st===3 && !snow) for(let i=0;i<4;i++) s += ell(36+r()*28, 60+r()*36, 1.8, 2.6, md('bark'), 0) + ell(36+r()*28, 60+r()*36, 1.3, 1.3, lt('pine'), 0, OP(.7));
+  if(snow){ for(let i=0;i<st*4;i++) s += circ(22+r()*56, 10+r()*90, .9+r()*.7, '#fff', OP(.9)); s += ell(50,109.5,12+st*3,2.4,G('snow')); }
+  return s;
+}
+
+/* ---- espèces spéciales ---- */
+function cactusCol(x, top, w, bot=110){
+  return pth(`M${f1(x-w/2)} ${bot} L${f1(x-w/2)} ${f1(top+w/2)} A${f1(w/2)} ${f1(w/2)} 0 0 1 ${f1(x+w/2)} ${f1(top+w/2)} L${f1(x+w/2)} ${bot}Z`, GL('cac')) +
+    strk(`M${f1(x-w*.25)} ${f1(top+w*.4)} L${f1(x-w*.25)} ${bot-1}`, lt('cac'), .9, .6) + strk(`M${f1(x+w*.22)} ${f1(top+w*.4)} L${f1(x+w*.22)} ${bot-1}`, dk('cac'), .8, .45);
+}
+function spines(x,top,w,bot,seed){ const r=rng(seed); let s=''; for(let y=top+w*.6;y<bot-2;y+=5) [-.38,0,.38].forEach(k=>{ if(r()<.7) s+=circ(x+w*k, y+r()*2, .55, '#fffbe8', OP(.9)); }); return s; }
+function cactusArm(x, y, dir, len, up, w){
+  const xe=x+dir*len;
+  return `<rect x="${f1(Math.min(x,xe))}" y="${f1(y-w/2)}" width="${f1(len)}" height="${f1(w)}" rx="${f1(w/2)}" fill="${GV('cac')}"/>` + cactusCol(xe, y-up, w, y+w/2) + spines(xe, y-up, w, y, 'a'+x+y);
+}
+function bambooStalk(x, top, w){
+  let s=`<rect x="${f1(x-w/2)}" y="${f1(top)}" width="${f1(w)}" height="${f1(110-top)}" rx="${f1(w/2)}" fill="${GL('bam')}"/>`;
+  for(let y=top+11;y<107;y+=12) s+=`<rect x="${f1(x-w/2-.6)}" y="${f1(y)}" width="${f1(w+1.2)}" height="1.9" rx=".9" fill="${dk('bam')}"/>` + strk(`M${f1(x-w/2+1.1)} ${f1(y+3)} L${f1(x-w/2+1.1)} ${f1(y+8.5)}`, lt('bam'), .9, .7);
+  return s;
+}
+function frond(x,y,ang,len,p){
+  let s=pth(`M0 0 Q${f1(len*.5)} ${f1(-len*.3)} ${f1(len)} ${f1(len*.1)} Q${f1(len*.52)} ${f1(-len*.1)} 0 0Z`, G(p));
+  for(let k=1;k<7;k++){ const t=k/7, [px,py]=qpt([0,0],[len*.5,-len*.3],[len,len*.1],t); s+=strk(`M${f1(px)} ${f1(py)} l${f1(len*.05)} ${f1(len*.09)}`, dk(p), .8, .55); }
+  s+=strk(`M0 0 Q${f1(len*.5)} ${f1(-len*.2)} ${f1(len*.95)} ${f1(len*.08)}`, lt(p), .8, .6);
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})">${s}</g>`;
+}
+function palmTree(st){
+  const [tx,ty,w,angles,len] = st===1 ? [53,82,4,[-25,-155,-95,-60],17] : st===2 ? [55,60,5.5,[-15,-50,-130,-165,-95,20],24] : [57,44,7,[-10,25,-45,-135,-170,155,-90,-65],30];
+  const p0=[48,110], c=[44,(110+ty)/2+8], p1=[tx,ty];
+  let s = strk(`M${p0} Q${c} ${p1}`, md('bark'), w) + strk(`M${p0[0]-w*.25} ${p0[1]} Q${c[0]-w*.25} ${c[1]} ${p1[0]-w*.2} ${p1[1]}`, lt('bark'), w*.3, .55);
+  for(let i=1;i<9;i++){ const [px,py]=qpt(p0,c,p1,i/9); s+=strk(`M${f1(px-w/2)} ${f1(py)} Q${f1(px)} ${f1(py+1.6)} ${f1(px+w/2)} ${f1(py)}`, dk('bark'), .8, .6); }
+  const back=angles.filter((a,i)=>i%2), front=angles.filter((a,i)=>!(i%2));
+  back.forEach(a=>s+=frond(tx,ty,a,len*.92,'oak2')); front.forEach(a=>s+=frond(tx,ty,a,len,'palm'));
+  if(st===3) s += fruit(tx-3,ty+3,3.2,'sunC') + fruit(tx+3,ty+4,3.2,'sunC') + fruit(tx,ty+6,3,'sunC');
+  if(st===2) s += fruit(tx-1,ty+3,2.4,'stem');
+  return s;
+}
+function willowTree(st){
+  const b = st===1 ? {ty:76,wb:4.5,wt:3,cy:66,rx:15,ry:10,n:6,k:6} : st===2 ? {ty:62,wb:8,wt:5,cy:54,rx:25,ry:15,n:9,k:10} : {ty:58,wb:11,wt:6.5,cy:46,rx:32,ry:19,n:13,k:14};
+  let s = trunk(50, b.ty, b.wb, b.wt);
+  const strands = c => { let o=''; const r=rng('w'+st+c); for(let i=0;i<b.k;i++){
+      const x=50-b.rx*.95+i*(b.rx*1.9)/(b.k-1), y0=b.cy+b.ry*.2, y1=Math.min(106, b.cy+b.ry*.4+b.ry*1.8*(1-Math.abs(i/(b.k-1)-.5)*.9)+r()*6);
+      const p0=[x,y0], cc=[x+3,(y0+y1)/2], p1=[x-1.5,y1];
+      o+=strk(`M${f1(x)} ${f1(y0)} Q${f1(cc[0])} ${f1(cc[1])} ${f1(p1[0])} ${f1(p1[1])}`, c==='b'?dk('will'):md('will'), st===1?1.4:1.8);
+      for(let t=.2;t<=1;t+=.16){ const [px,py]=qpt(p0,cc,p1,t); o+=ell(px+(r()-.5)*1.5,py,1.5,2.6,c==='b'?md('will'):G('will'),r()*40-20); }
+    } return o; };
+  s += strands('b') + canopy(50, b.cy, b.rx, b.ry, ['will','oak'], {n:b.n, seed:'wc'+st, r0:b.ry*.55, r1:b.ry*.8}) + strands('f');
+  return s;
+}
+function sunflower(st){
+  if(st===1) return strk('M50 110 Q48 94 50 80','#4f9b3d',3) + leaf(49,96,13,4.5,-150,'stem') + leaf(50,90,12,4,-25,'stem') +
+    ell(50,76,5,7,G('stem')) + leaf(50,80,6,2.4,-120,'stem',false) + leaf(50,80,6,2.4,-60,'stem',false) + ell(50,71,2.4,1.5,'#f9c62c');
+  const head=(x,y,R,np)=>{ let h=''; for(let i=0;i<np;i++){ const a=i*360/np; h+=`<g transform="rotate(${f1(a+180/np)} ${x} ${y})">${ell(x,y-R*1.05,R*.28,R*.62,dk('sunP'))}</g>`; }
+    for(let i=0;i<np;i++){ const a=i*360/np; h+=`<g transform="rotate(${f1(a)} ${x} ${y})">${ell(x,y-R*1.1,R*.3,R*.66,G('sunP'))}</g>`; }
+    h+=circ(x,y,R*.62,G('sunC')); for(let i=0;i<14;i++){ const a=i*2.4, d=Math.sqrt(i/14)*R*.48; h+=circ(x+Math.cos(a)*d,y+Math.sin(a)*d,R*.06,'#c99a5a',OP(.8)); } return h; };
+  const top = st===2?44:30, R = st===2?7.5:10.5;
+  let s = pth(`M48.4 110 Q47 80 49.2 ${top} L50.8 ${top} Q49.4 80 51.6 110Z`, GL('stem')) + leaf(49,86,16,5.5,-155,'stem') + leaf(50,70,16,5.5,-28,'stem');
+  if(st===3) s += leaf(49,98,14,5,-25,'stem') + pth('M51 92 Q60 78 64 66 L65.4 66.6 Q62 80 52.2 93Z', GL('stem')) + head(65,62,6,11);
+  return s + head(50,top,R,st===2?12:15);
+}
+function shroom(x, h, R, p, seed){
+  const base=110, ct=base-h;
+  let s = pth(`M${f1(x-R*.3)} ${base} Q${f1(x-R*.36)} ${f1(base-h*.5)} ${f1(x-R*.24)} ${f1(ct+R*.15)} L${f1(x+R*.24)} ${f1(ct+R*.15)} Q${f1(x+R*.36)} ${f1(base-h*.5)} ${f1(x+R*.3)} ${base}Z`, GL('mstem'));
+  s += ell(x, ct+R*.14, R*.82, R*.2, '#e2d2b2');
+  s += pth(`M${f1(x-R)} ${f1(ct+R*.1)} Q${f1(x-R)} ${f1(ct-R*.85)} ${f1(x)} ${f1(ct-R*.9)} Q${f1(x+R)} ${f1(ct-R*.85)} ${f1(x+R)} ${f1(ct+R*.1)} Q${f1(x)} ${f1(ct+R*.32)} ${f1(x-R)} ${f1(ct+R*.1)}Z`, G(p));
+  const r=rng(seed); [[-.45,-.35,.17],[.15,-.6,.2],[.55,-.15,.13],[-.1,-.1,.12],[-.75,-.02,.1]].forEach(([dx,dy,k])=>s+=ell(x+dx*R+r(),ct+dy*R,R*k,R*k*.75,'#fffaf0',0,OP(.95)));
+  return s + ell(x-R*.45,ct-R*.55,R*.2,R*.1,'#fff',-30,OP(.5));
+}
+
+/* ---- catalogue ---- */
+const TREES = [
+  {id:'oak', name:'Chêne', price:0, draw:st=>roundTree(st,['oak','oak2'],{seed:'oak',sparkle:2})},
+  {id:'pine', name:'Sapin', price:0, draw:st=>pineTree(st,'pine',false)},
+  {id:'birch', name:'Bouleau', price:150, draw:st=>roundTree(st, st===1?['bir2']:['bir','bir2','oak'], {seed:'bir', bark:'birch', wx:.78, wy:1.18,
+    trunkExtra:b=>{ const r=rng('lent'+b.ty); let s=''; for(let y=b.ty+6;y<106;y+=7) s+=ell(50+(r()-.5)*b.wb*.6,y,b.wb*.22,.7,'#3d3a36',0,OP(.8)); return s; },
+    extra:(g,sd)=>st===3?scatter(g,sd+'k',7).map(([x,y])=>ell(x,y+3,.9,2.4,'#d9b84a')).join(''):''})},
+  {id:'cherry', name:'Cerisier', price:250, draw:st=>roundTree(st, st===1?['oak']:['cher','cher2'], {seed:'che',
+    extra:(g,sd)=>st===1 ? blossom(g.cx+3,g.cy-2,3) : scatter(g,sd+'b',st===2?6:12).map(([x,y])=>blossom(x,y,st===2?2.6:3)).join('') + (st===3?fallen(['#f8abc9','#ffd3e4','#fff'],sd,8):'')})},
+  {id:'maple', name:'Érable', price:250, draw:st=>roundTree(st, st===1?['bir','bir2']:st===2?['mapO','mapY']:['mapR','mapO','mapY'], {seed:'map',
+    extra:(g,sd)=>st===3?fallen(['#e84a2c','#f3812c','#f5bd36'],sd,7):''})},
+  {id:'cactus', name:'Cactus', price:200, draw:st=>
+    st===1 ? ell(50,100,10,11.5,G('cac')) + strk('M50 90 V109 M44 92 Q42 100 44 108 M56 92 Q58 100 56 108',dk('cac'),.8,.5) + spines(50,90,12,108,'c1') + blossom(50,89,3,'pink','#ffe066')
+    : st===2 ? cactusCol(50,52,15) + spines(50,52,15,108,'c2') + cactusArm(56,82,1,10,14,9)
+    : cactusCol(50,38,16) + spines(50,38,16,108,'c3') + cactusArm(43,78,-1,12,20,9.5) + cactusArm(57,68,1,11,16,9) + blossom(50,37,4.2,'pink','#ffe066') + blossom(68,51,3,'pink','#ffe066') + blossom(31,57,2.6,'pink','#ffe066')},
+  {id:'bamboo', name:'Bambou', price:300, draw:st=>{
+    const stalks = st===1 ? [[50,78,4.5]] : st===2 ? [[42,58,5],[52,44,5.5],[60,66,4.5]] : [[36,46,5],[45,26,6],[54,18,6],[62,38,5.5],[69,58,4.5]];
+    let s=''; stalks.forEach(([x,top,w],i)=>{
+      s += bambooStalk(x,top,w);
+      s += leaf(x+1,top+8,14,3.4,-25-i*6,'bamL') + leaf(x-1,top+14,13,3.2,-160+i*5,'bamL') + leaf(x,top+4,11,2.8,-80,'bamL');
+      if(st>1) s += leaf(x+1,top+28,12,3,-15,'bamL') + leaf(x-1,top+34,11,2.8,-170,'bamL');
+    }); return s; }},
+  {id:'lemon', name:'Citronnier', price:350, draw:st=>roundTree(st, ['lemL','oak2'], {seed:'lem',
+    extra:(g,sd)=>st===1 ? blossom(g.cx-3,g.cy,2.2,'blossom','#ffe066') : scatter(g,sd+'f',st===2?4:9).map(([x,y],i)=>st===2&&i%2?blossom(x,y,2.4,'blossom','#ffe066'):fruit(x,y,3.2,'lemon')).join('')})},
+  {id:'sunflower', name:'Tournesol', price:300, draw:sunflower},
+  {id:'willow', name:'Saule', price:400, draw:willowTree},
+  {id:'palm', name:'Palmier', price:400, draw:palmTree},
+  {id:'ginkgo', name:'Ginkgo', price:350, draw:st=>roundTree(st, st===1?['bir','oak']:['gin','gin2','mapY'], {seed:'gin', wy:1.12,
+    extra:(g,sd)=>st===3?fallen(['#f6d23d','#eabb2e','#fff08a'],sd,8):''})},
+  {id:'jacaranda', name:'Jacaranda', price:450, draw:st=>roundTree(st, st===1?['oak','jac']:['jac','jac2','cher2'], {seed:'jac', wx:1.15, wy:.86,
+    extra:(g,sd)=>st===3?fallen(['#b384ea','#9a68da','#dfc6ff'],sd,9):''})},
+  {id:'mushroom', name:'Champignon', price:500, draw:st=>
+    st===1 ? shroom(50,13,9,'cap','m1') + ell(40,108,3,1.2,G('grass'))
+    : st===2 ? shroom(50,30,21,'cap','m2')
+    : shroom(50,38,26,'cap','m3') + shroom(74,15,10,'capO','m4') + shroom(28,11,7.5,'cap','m5')},
+  {id:'snowpine', name:'Sapin enneigé', price:600, draw:st=>pineTree(st,'pine2',true)},
+  {id:'baobab', name:'Baobab', price:800, draw:st=>{
+    const b = st===1 ? {top:80,wb:7,wt:4,cy:76,rx:16,ry:5.5,n:6} : st===2 ? {top:66,wb:15,wt:9,cy:58,rx:26,ry:8,n:9} : {top:60,wb:24,wt:12,cy:46,rx:34,ry:10,n:13};
+    let s = pth(`M${f1(50-b.wb/2-3)} 110 Q${f1(50-b.wb*.62)} ${f1((110+b.top)/2)} ${f1(50-b.wt/2)} ${b.top} L${f1(50+b.wt/2)} ${b.top} Q${f1(50+b.wb*.62)} ${f1((110+b.top)/2)} ${f1(50+b.wb/2+3)} 110Z`, GL('baobab'));
+    if(st>1) s += strk(`M${f1(50-b.wb*.2)} 106 Q${f1(50-b.wb*.25)} ${f1((110+b.top)/2)} ${f1(50-b.wt*.2)} ${b.top+3} M${f1(50+b.wb*.15)} 104 Q${f1(50+b.wb*.2)} ${f1((110+b.top)/2)} ${f1(50+b.wt*.15)} ${b.top+4}`, dk('baobab'), .9, .4) +
+      branch(50-b.wt*.3,b.top+2, 50-b.rx*.4,b.top-2, 50-b.rx*.6,b.cy+2, b.wt*.3,'baobab') + branch(50+b.wt*.3,b.top+2, 50+b.rx*.4,b.top-3, 50+b.rx*.62,b.cy+1, b.wt*.3,'baobab') + branch(50,b.top, 50,b.top-4, 50,b.cy, b.wt*.3,'baobab');
+    s += canopy(50,b.cy,b.rx,b.ry,['bao','oak'],{n:b.n,seed:'bao'+st,r0:b.ry*.75,r1:b.ry*1.05});
+    if(st===3) s += fruit(36,58,2.2,'baobab') + fruit(64,57,2.2,'baobab');
+    return s; }},
+];
+const TREE = Object.fromEntries(TREES.map(t=>[t.id,t]));
+TREES.forEach(t=>t.svg=[null, t.draw(1), t.draw(2), t.draw(3)]);
+const DEAD = trunk(50,64,7,3,'dead') + branch(50,84,44,78,37,68,2.6,'dead') + branch(50,74,56,68,62,58,2.4,'dead') + branch(50,66,47,58,44,50,2,'dead') + branch(62,58,66,55,69,52,1.4,'dead') +
+  fallen(['#a8875f','#8e6f4b','#c2a27a'],'dead',6);
+function sprout(g){
+  const h=5+15*g, y=106-h, k=.55+.65*g;
+  return ell(50,108,16,5.5,GV('soil')) + ell(48,106.6,10,2.2,lt('soil'),0,OP(.35)) + strk(`M50 107 Q49 ${f1(106-h/2)} 50 ${f1(y)}`, md('stem'), 1.8+g) +
+    leaf(50,y,8*k,3*k,-150,'stem') + leaf(50,y,8*k,3*k,-30,'stem');
+}
+/* petit îlot de terre sous un arbre (aperçus) */
+const DISC = (()=>{ const r=rng('disc'); let s = ell(50,112.5,35,7.2,dk('soil')) + `<rect x="15" y="106" width="70" height="6.5" fill="${GV('soil')}"/>` + ell(50,112.5,35,7.2,GV('soil'),0,OP(.0)) +
+  ell(50,107.4,36,7.8,dk('grass')) + ell(50,106.6,35,7.2,GV('grassTop'));
+  for(let i=0;i<9;i++){ const a=r()*Math.PI*2, d=.35+r()*.55, x=50+Math.cos(a)*30*d, y=106.6+Math.sin(a)*6*d; s+= i%3 ? strk(`M${f1(x-1.5)} ${f1(y)} l.6 -2.6 M${f1(x)} ${f1(y)} l0 -3.2 M${f1(x+1.5)} ${f1(y)} l-.6 -2.6`, dk('grass'), .7, .8) : circ(x,y-.6,.9,['#fff','#ffe066','#ffb8d2'][i%3])+circ(x,y-.6,.35,'#f5a623'); }
+  return s; })();
+
+const STAGE_MIN = 25, STAGE_SCALE = [0, 0.82, 0.93, 1];
+const stageFor = min => Math.max(1, Math.min(3, Math.floor(min/STAGE_MIN)));
+const stageOf = s => s.stage || stageFor(s.focused);
+/* stage 0 = pousse (grow 0→1), 1..3 = stades ; grow ajoute une légère croissance continue dans un stade */
+function treeSVG(id, stage=3, dead=false, grow=1){
+  const shadow = w => ell(50,110,w,w*.26,'url(#gr-shadow)');
+  if(dead) return shadow(20) + DEAD;
+  if(stage<=0) return sprout(grow);
+  const s = STAGE_SCALE[stage]*(0.95+0.05*grow);
+  return shadow(26*s) + `<g transform="translate(50 110) scale(${s.toFixed(3)}) translate(-50 -110)">${(TREE[id]||TREE.oak).svg[stage]}</g>`;
+}
+const treeEl = (id,stage,dead,grow,disc)=>`<svg viewBox="0 0 100 120">${disc?DISC:''}${treeSVG(id,stage,dead,grow)}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+/* =========================================================
+   Utilitaires
+   ========================================================= */
+function fmtDur(min){ min=Math.round(min); const h=Math.floor(min/60), m=min%60; return h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`; }
+const mmss = (ms, floor) => { const t=Math.max(0,floor?Math.floor(ms/1000):Math.ceil(ms/1000)), h=Math.floor(t/3600), m=Math.floor(t/60)%60, s=t%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; };
+const dayKey = d => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function getRange(r, ref){
+  let s=startOfDay(ref), e;
+  if(r==='day'){ e=new Date(s); e.setDate(e.getDate()+1); }
+  else if(r==='week'){ s.setDate(s.getDate()-((s.getDay()+6)%7)); e=new Date(s); e.setDate(e.getDate()+7); }
+  else if(r==='month'){ s.setDate(1); e=new Date(s); e.setMonth(e.getMonth()+1); }
+  else { s.setMonth(0,1); e=new Date(s); e.setFullYear(e.getFullYear()+1); }
+  return {s,e};
+}
+function shiftRef(r, ref, dir){
+  const d=new Date(ref);
+  if(r==='day') d.setDate(d.getDate()+dir);
+  else if(r==='week') d.setDate(d.getDate()+7*dir);
+  else if(r==='month'){ d.setDate(1); d.setMonth(d.getMonth()+dir); }
+  else d.setFullYear(d.getFullYear()+dir);
+  return d;
+}
+function rangeLabel(r,{s,e}){
+  const now=new Date();
+  if(r==='day') return dayKey(s)===dayKey(now) ? "Aujourd'hui" : s.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  if(r==='week') return `${s.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} – ${new Date(e-1).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}`;
+  if(r==='month') return s.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  return String(s.getFullYear());
+}
+const inRange = ({s,e}) => S.sessions.filter(x=>x.start>=+s && x.start<+e);
+function rng(seedStr){ let h=1779033703; for(const ch of seedStr) h=Math.imul(h^ch.charCodeAt(0),3432918353); return ()=>{ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return ((h^=h>>>16)>>>0)/4294967296; }; }
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+function modal(html, acts=[]){
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal">${html}<div class="acts"></div></div>`;
+  const box=bg.querySelector('.acts');
+  acts.forEach(a=>{ const b=document.createElement('button'); b.className='btn sm '+(a.cls||''); b.textContent=a.label; b.onclick=()=>{ bg.remove(); a.fn&&a.fn(); }; box.appendChild(b); });
+  bg.addEventListener('click',ev=>{ if(ev.target===bg) bg.remove(); });
+  document.body.appendChild(bg); return bg;
+}
+
+/* Son de fin (Web Audio) */
+let actx=null;
+function unlockAudio(){ try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){} }
+function chime(){
+  if(!S.settings.sound || !actx) return;
+  [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+    const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+i*0.14;
+    o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.25,t+.02); g.gain.exponentialRampToValueAtTime(.001,t+.9);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t+1);
+  });
+}
+/* Écran allumé */
+let wakeLock=null;
+async function requestWake(){ if(!S.settings.wake||!('wakeLock' in navigator)) return; try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
+function releaseWake(){ try{ wakeLock&&wakeLock.release(); }catch(e){} wakeLock=null; }
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+const ICONS = {
+  plant:'<path d="M12 21v-8M12 13c0-4 3-7 8-7 0 4-3 7-8 7zM12 15c0-3-2.5-5.5-7-5.5 0 3 2.5 5.5 7 5.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  forest:'<path d="M8 3l-5 8h3l-3 5h10l-3-5h3zM8 16v5M17 7l-4 7h8zM17 14v7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  stats:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  shop:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M9.5 10.5c0-1.2 1-2 2.5-2s2.5.7 2.5 1.8c0 2.4-5 1.4-5 3.7 0 1.1 1 2 2.5 2s2.5-.8 2.5-2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  settings:'<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+};
+const TABS=[['plant','Planter'],['forest','Forêt'],['stats','Stats'],['shop','Arbres'],['settings','Réglages']];
+let current='plant';
+$('#tabs').innerHTML = TABS.map(([id,l])=>`<button data-t="${id}" class="${id===current?'active':''}"><svg viewBox="0 0 24 24">${ICONS[id]}</svg>${l}</button>`).join('');
+$('#tabs').onclick = ev => { const b=ev.target.closest('button'); if(b) go(b.dataset.t); };
+function go(id){
+  current=id;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='v-'+id));
+  ({plant:renderPlant, forest:renderForest, stats:renderStats, shop:renderShop, settings:renderSettings})[id]();
+  window.scrollTo(0,0);
+}
+function renderCoins(){ $('#coins').textContent=S.coins; }
+
+/* =========================================================
+   Planter
+   ========================================================= */
+const R=128, CX=150, CIRC=2*Math.PI*R, MAXMIN=120, MINMIN=10;
+const QUOTES = [
+  "Une graine à la fois, une minute à la fois.",
+  "Ton téléphone peut attendre. Ton arbre, lui, pousse.",
+  "Les grandes forêts commencent par un seul arbre.",
+  "Reste avec moi encore un peu, je grandis.",
+  "La concentration, c'est de l'eau pour les racines.",
+  "Respire. Reviens à ta tâche. Ça avance.",
+  "Chaque minute ici est une minute gagnée.",
+  "Le calme d'une forêt, c'est la somme de ses patiences."
+];
+let lastPct=-1, timer=null;
+
+function ringMarkup(frac, showKnob, col, marks){
+  const pt = (f, r=R) => { const a=f*2*Math.PI-Math.PI/2; return [CX+r*Math.cos(a), CX+r*Math.sin(a)]; };
+  const [kx,ky]=pt(frac);
+  const busy = !!(S.active||S.brk);
+  const ticks = (marks||[]).map(m=>{ const [x,y]=pt(m.f); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${m.on?'#fff':busy?'rgba(255,255,255,.35)':'#cfc7b3'}"/>`; }).join('');
+  return `<circle cx="${CX}" cy="${CX}" r="116" fill="${busy?'rgba(255,255,255,.1)':'#e3efd9'}"/>
+    <circle cx="${CX}" cy="${CX}" r="${R}" fill="none" stroke="${busy?'rgba(255,255,255,.18)':'#e4ddcc'}" stroke-width="14"/>
+    <circle cx="${CX}" cy="${CX}" r="${R}" fill="none" stroke="${col||(busy?'#9be08f':'#3f8f5a')}" stroke-width="14" stroke-linecap="round"
+      stroke-dasharray="${(frac*CIRC).toFixed(1)} ${CIRC.toFixed(1)}" transform="rotate(-90 ${CX} ${CX})"/>
+    ${ticks}
+    ${showKnob?`<circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="15" fill="#fff" stroke="#3f8f5a" stroke-width="4"/>`:''}`;
+}
+/* repères des stades (25, 50, 75 min) sur le cadran de réglage */
+const idleMarks = d => [1,2,3].map(i=>({f:i*STAGE_MIN/MAXMIN, on:d>=i*STAGE_MIN}));
+const pomoOn = () => S.settings.pomo && S.mode==='timer';
+const CANCEL_MS = 10000;
+function showBtns(ids){ ['giveUpBtn','endBtn','skipBtn','stopBtn'].forEach(id=>$('#'+id).style.display = ids.includes(id)?'':'none'); }
+const stars = n => '★'.repeat(n)+'☆'.repeat(3-n);
+
+function paintDial(){
+  const st=stageFor(S.duration);
+  $('#ringSvg').innerHTML = ringMarkup(S.duration/MAXMIN, true, null, idleMarks(S.duration));
+  $('#time').textContent = mmss(S.duration*60000);
+  $('#ringTree').innerHTML = treeEl(S.tree, st, false, 1, true);
+  $('#hint').innerHTML = `${TREE[S.tree].name} · <b>${stars(st)}</b> stade ${st}/3${S.settings.pomo?` · puis ${S.settings.short} min de pause`:''}`;
+}
+function renderPlant(){
+  renderCoins();
+  const a=S.active, tg=tagOf(a?a.tag:S.tag);
+  $('#tagChip').innerHTML=`<span class="dot" style="background:${tg.color}"></span>${esc(tg.name)}`;
+  if(S.brk){ tickBreak(true); return; }
+  if(a){ tick(true); return; }
+  $('#modeSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===S.mode));
+  const chrono = S.mode==='chrono';
+  $('#pomoChip').style.display = chrono ? 'none' : '';
+  $('#pomoChip').classList.toggle('off', !S.settings.pomo);
+  $('#pomoChip').textContent = `🍅 Pomodoro${S.settings.pomo?' ✓':''}`;
+  if(chrono){
+    $('#ringSvg').innerHTML = ringMarkup(0, false);
+    $('#time').textContent = '00:00';
+    $('#ringTree').innerHTML = treeEl(S.tree, 3, false, 1, true);
+    $('#hint').innerHTML = `${TREE[S.tree].name} · un stade toutes les ${STAGE_MIN} min · ${CHRONO_MIN} min minimum`;
+  } else paintDial();
+  renderFavs();
+  renderGoal();
+}
+$('#modeSeg').onclick = ev => { const b=ev.target.closest('button'); if(!b) return; S.mode=b.dataset.m; save(); renderPlant(); };
+$('#pomoChip').onclick = () => { S.settings.pomo=!S.settings.pomo; save(); renderPlant(); toast(S.settings.pomo?`🍅 Pomodoro : ${S.settings.short} min de pause après chaque arbre`:'Pomodoro désactivé'); };
+
+/* Cadran : toucher le centre = choisir l'arbre, glisser sur l'anneau = durée */
+let dragging=false, tapTree=false;
+function ringPos(ev){ const r=$('#ring').getBoundingClientRect(), k=300/r.width; return {x:(ev.clientX-r.left)*k-CX, y:(ev.clientY-r.top)*k-CX}; }
+function angleToMin(ev){
+  const {x,y}=ringPos(ev);
+  let deg = Math.atan2(x,-y)*180/Math.PI; if(deg<0) deg+=360;
+  let m = Math.round(deg/360*MAXMIN/5)*5;
+  if(S.duration>=95 && m<=25) m=MAXMIN; else if(S.duration<=25 && m>=95) m=MINMIN;
+  return Math.min(MAXMIN, Math.max(MINMIN, m));
+}
+$('#ring').addEventListener('pointerdown', ev=>{
+  if(S.active||S.brk) return;
+  const {x,y}=ringPos(ev);
+  if(Math.hypot(x,y) < 100 || S.mode==='chrono'){ tapTree = Math.hypot(x,y) < 116; return; }
+  dragging=true; $('#ring').setPointerCapture(ev.pointerId); onDrag(ev);
+});
+$('#ring').addEventListener('pointermove', ev=>{ if(dragging) onDrag(ev); });
+$('#ring').addEventListener('pointerup', ()=>{
+  if(dragging){ dragging=false; save(); renderPlant(); }
+  else if(tapTree){ tapTree=false; openTreePicker(); }
+});
+function onDrag(ev){ const m=angleToMin(ev); if(m!==S.duration){ S.duration=m; paintDial(); } }
+
+function openTreePicker(){
+  const m = modal(`<h3>Choisis ton arbre</h3><div class="treegrid">${S.unlocked.map(id=>`<button data-id="${id}" class="${id===S.tree?'sel':''}">${treeEl(id,3,false,1,true)}${TREE[id].name}</button>`).join('')}</div>`,
+    [{label:`Débloquer d'autres arbres (${TREES.length-S.unlocked.length})`, cls:'light', fn:()=>go('shop')}]);
+  m.querySelector('.treegrid').onclick = ev=>{ const b=ev.target.closest('button'); if(!b) return; S.tree=b.dataset.id; save(); m.remove(); renderPlant(); };
+}
+
+$('#tagChip').onclick = ()=>{
+  if(S.active||S.brk) return;
+  const m = modal(`<h3>Étiquette</h3><div class="taglist">${S.tags.map(t=>`<button data-id="${t.id}" class="${t.id===S.tag?'on':''}"><span class="dot" style="background:${t.color}"></span>${esc(t.name)}${t.id===S.tag?' ✓':''}</button>`).join('')}</div><p style="font-size:12px">Gère tes étiquettes dans Réglages.</p>`, [{label:'Fermer',cls:'light'}]);
+  m.querySelector('.taglist').onclick = ev=>{ const b=ev.target.closest('button'); if(!b) return; S.tag=b.dataset.id; save(); m.remove(); renderPlant(); };
+};
+
+/* ---- Favoris : un toucher = la session démarre ---- */
+const favInfo = f => f.mode==='chrono' ? 'Chrono' : `${f.duration} min${f.pomo?' · 🍅':''}`;
+function renderFavs(){
+  const row = S.favs.map(f=>`<button class="fav" data-fav="${f.id}">${treeEl(f.tree, f.mode==='chrono'?3:stageFor(f.duration))}<div><div class="fn">${esc(f.name)}</div><div class="fs"><span class="dot" style="background:${tagOf(f.tag).color}"></span>${favInfo(f)}</div></div></button>`).join('');
+  $('#favs').innerHTML = `<div class="hd"><span>⭐ Favoris${S.favs.length?' · un toucher pour lancer':''}</span>${S.favs.length?'<button data-act="manage">Gérer</button>':''}</div>
+    <div class="favrow">${row}<button class="fav add" data-act="add">＋ ${S.favs.length?'Ajouter':'Enregistrer ces réglages en favori'}</button></div>`;
+}
+let pressTimer=null, longPressed=false;
+$('#favs').addEventListener('pointerdown', ev=>{
+  const b=ev.target.closest('[data-fav]'); longPressed=false; if(!b) return;
+  pressTimer=setTimeout(()=>{ longPressed=true; openFavManager(); }, 550);
+});
+['pointerup','pointerleave','pointercancel'].forEach(t=>$('#favs').addEventListener(t, ()=>clearTimeout(pressTimer)));
+$('#favs').addEventListener('scroll', ()=>clearTimeout(pressTimer), true);
+$('#favs').addEventListener('contextmenu', ev=>ev.preventDefault());
+$('#favs').onclick = ev=>{
+  if(longPressed){ longPressed=false; return; }
+  const f=ev.target.closest('[data-fav]'), act=ev.target.closest('[data-act]');
+  if(f) startFav(f.dataset.fav);
+  else if(act && act.dataset.act==='add') openAddFav();
+  else if(act && act.dataset.act==='manage') openFavManager();
+};
+function startFav(id){
+  const f=S.favs.find(x=>x.id===id); if(!f) return;
+  S.mode=f.mode; if(f.mode==='timer') S.duration=f.duration;
+  S.tree = S.unlocked.includes(f.tree) ? f.tree : S.tree;
+  if(S.tags.some(t=>t.id===f.tag)) S.tag=f.tag;
+  S.settings.pomo=!!f.pomo;
+  unlockAudio(); startFocus();
+}
+function openAddFav(){
+  const what = S.mode==='chrono' ? 'Chrono' : `${S.duration} min`;
+  const m = modal(`<h3>Nouveau favori</h3><div class="big">${treeEl(S.tree, S.mode==='chrono'?3:stageFor(S.duration))}</div>
+    <p style="margin:0">${TREE[S.tree].name} · ${what}${pomoOn()?' · Pomodoro':''} · ${esc(tagOf(S.tag).name)}</p>
+    <input type="text" id="favName" maxlength="24" value="${esc(tagOf(S.tag).name+' · '+what)}" placeholder="Nom du favori">`,
+    [{label:'Annuler',cls:'light'},{label:'Enregistrer',fn:()=>{
+      const name=m.querySelector('#favName').value.trim()||tagOf(S.tag).name;
+      S.favs.push({id:'f'+Date.now().toString(36), name, mode:S.mode, duration:S.duration, tree:S.tree, tag:S.tag, pomo:pomoOn()});
+      save(); renderFavs(); toast('⭐ Favori ajouté');
+    }}]);
+}
+function openFavManager(){
+  const m = modal(`<h3>Mes favoris</h3><div id="favList" style="text-align:left"></div><p style="font-size:12px">Astuce : un appui long sur un favori ouvre ce menu.</p>`,
+    [{label:'Terminé', fn:()=>{ commit(); save(); renderFavs(); }}]);
+  const list=m.querySelector('#favList');
+  const commit = () => list.querySelectorAll('[data-name]').forEach(i=>{ const f=S.favs.find(x=>x.id===i.dataset.name); if(f) f.name=i.value.trim()||f.name; });
+  const draw = () => { list.innerHTML = S.favs.length ? S.favs.map((f,i)=>`<div class="row" style="gap:8px">
+      <button class="iconbtn" data-up="${i}" ${i?'':'disabled'}>↑</button>
+      <div style="flex:1;min-width:0"><input type="text" data-name="${f.id}" value="${esc(f.name)}" maxlength="24" style="width:100%;margin:0"><div class="sub">${TREE[f.tree].name} · ${favInfo(f)} · ${esc(tagOf(f.tag).name)}</div></div>
+      <button class="iconbtn" data-rm="${f.id}" style="color:var(--danger)">×</button></div>`).join('') : '<div class="empty">Aucun favori.</div>'; };
+  list.onclick = ev=>{
+    const up=ev.target.closest('[data-up]'), rm=ev.target.closest('[data-rm]');
+    if(up){ commit(); const i=+up.dataset.up; [S.favs[i-1],S.favs[i]]=[S.favs[i],S.favs[i-1]]; draw(); }
+    if(rm){ commit(); S.favs=S.favs.filter(x=>x.id!==rm.dataset.rm); draw(); }
+  };
+  draw();
+}
+
+function startFocus(){
+  S.active = {start:Date.now(), duration:S.mode==='chrono'?null:S.duration, mode:S.mode, tree:S.tree, tag:S.tag, pomo:pomoOn()};
+  if(!S.active.pomo) S.cycle=0;
+  save(); enterFocus();
+}
+$('#plantBtn').onclick = ()=>{ unlockAudio(); startFocus(); };
+
+function loop(){ if(S.active) tick(); else if(S.brk) tickBreak(); }
+function enterFocus(){
+  document.body.classList.add('focusing');
+  document.body.classList.toggle('breaking', !!S.brk);
+  lastPct=-1; requestWake(); if(S.active) newQuote();
+  clearInterval(timer); timer=setInterval(loop, 500);
+  if(current!=='plant') go('plant'); else renderPlant();
+}
+function exitFocus(){
+  clearInterval(timer); timer=null; releaseWake();
+  document.body.classList.remove('focusing','breaking');
+  renderPlant();
+}
+let quoteTimer=null;
+function newQuote(){ $('#quote').textContent = QUOTES[Math.floor(Math.random()*QUOTES.length)]; clearTimeout(quoteTimer); quoteTimer=setTimeout(()=>S.active&&newQuote(), 120000); }
+
+function tick(force){
+  const a=S.active; if(!a) return;
+  const el=Date.now()-a.start, chrono=a.mode==='chrono', mins=el/60000;
+  const st=Math.min(3, Math.floor(mins/STAGE_MIN)), grow = st>=3 ? 1 : (mins%STAGE_MIN)/STAGE_MIN;
+  const toNext = Math.ceil(STAGE_MIN - mins%STAGE_MIN);
+  const canCancel = el < CANCEL_MS, cancelLbl = `Annuler (${Math.ceil((CANCEL_MS-el)/1000)})`;
+  let frac, info;
+  if(chrono){
+    if(el>=CHRONO_MAX){ complete(); return; }
+    frac=(el%3600000)/3600000;
+    $('#time').textContent = mmss(el, true);
+    info = el<CHRONO_MIN*60000 ? `⏱️ Encore ${Math.ceil(CHRONO_MIN-mins)} min pour sauver l'arbre`
+         : st<3 ? `${stars(Math.max(1,st))} · stade ${st+1} dans ${toNext} min` : `${stars(3)} · stade maximum !`;
+    $('#endBtn').textContent = canCancel ? cancelLbl : 'Terminer';
+    showBtns(['endBtn']);
+  } else {
+    const tot=a.duration*60000, final=stageFor(a.duration);
+    if(el>=tot){ complete(); return; }
+    frac=el/tot;
+    $('#time').textContent = mmss(tot-el);
+    const nextReach = st<final;
+    info = (a.pomo ? `🍅 Cycle ${S.cycle+1} · ` : '') +
+      (nextReach ? `stade ${st+1}/3 dans ${toNext} min` : `${stars(final)} · stade ${final}/3 atteint`);
+    $('#giveUpBtn').textContent = canCancel ? cancelLbl : 'Abandonner';
+    showBtns(['giveUpBtn']);
+  }
+  $('#phase').textContent = info;
+  $('#ringSvg').innerHTML = ringMarkup(frac, false);
+  const key = st+':'+Math.floor(grow*40);
+  if(force || key!==lastPct){ lastPct=key; $('#ringTree').innerHTML = treeEl(a.tree, st, false, grow, true); }
+}
+function record(ok){
+  const a=S.active, now=Date.now(), el=now-a.start, chrono=a.mode==='chrono';
+  const focused = (chrono ? Math.min(el, CHRONO_MAX) : Math.min(el, a.duration*60000))/60000;
+  const s={id:now.toString(36)+Math.random().toString(36).slice(2,6), start:a.start, end:now,
+           planned: chrono ? Math.round(focused) : a.duration, focused, tree:a.tree, tag:a.tag, ok, mode:a.mode||'timer', stage:stageFor(focused)};
+  S.sessions.push(s); S.active=null; return s;
+}
+function cancelSession(){ S.active=null; S.cycle=0; save(); exitFocus(); toast('Session annulée, aucun arbre perdu'); }
+const rewardHTML = list => list.map(r=>`<div class="rw">${r}</div>`).join('');
+function complete(){
+  const pomo=S.active.pomo, s=record(true), earned=Math.round(s.focused);
+  S.coins+=earned;
+  let brkMsg='';
+  if(pomo){
+    S.cycle++; S.maxCycle=Math.max(S.maxCycle, S.cycle);
+    const long = S.cycle % S.settings.every === 0;
+    S.brk = {start:Date.now(), duration: long?S.settings.long:S.settings.short, long, tree:s.tree};
+    brkMsg = `<p>${long?'☕ Pause longue':'☕ Pause'} de ${S.brk.duration} min · cycle ${S.cycle} terminé</p>`;
+  }
+  const rw = rewards();
+  save(); chime();
+  const head = `<div class="big">${treeEl(s.tree,s.stage,false,1,true)}</div><h3>Ton ${TREE[s.tree].name.toLowerCase()} a poussé !</h3><p style="margin:0;color:var(--accent);font-size:20px">${stars(s.stage)}</p><p style="margin-top:2px">Stade ${s.stage}/3 · ${fmtDur(s.focused)} · <b style="color:var(--accent)">+${earned} pièces</b></p>${rewardHTML(rw)}`;
+  if(pomo){ enterFocus(); modal(head+brkMsg, [{label:'Arrêter le Pomodoro',cls:'light',fn:stopPomo},{label:'Bonne pause !'}]); }
+  else { exitFocus(); modal(head, [{label:'Voir ma forêt',cls:'light',fn:()=>go('forest')},{label:'Super !'}]); }
+}
+function kill(reason){
+  const s=record(false); S.cycle=0; S.brk=null; save(); exitFocus();
+  modal(`<div class="big">${treeEl(s.tree,3,true,1,true)}</div><h3>Ton arbre a fané…</h3><p>${reason}<br>Il restera dans ta forêt comme souvenir.</p>`, [{label:'Réessayer'}]);
+}
+$('#giveUpBtn').onclick = ()=>{
+  const a=S.active; if(!a) return;
+  if(Date.now()-a.start < CANCEL_MS) return cancelSession();
+  const left=a.duration*60000-(Date.now()-a.start);
+  modal(`<h3>Abandonner ?</h3><p>Il reste ${mmss(left)}. Si tu abandonnes, ton arbre va mourir.</p>`,
+    [{label:'Continuer',cls:'light'},{label:'Abandonner',cls:'danger',fn:()=>S.active&&kill('Tu as abandonné la session.')}]);
+};
+$('#endBtn').onclick = ()=>{
+  const a=S.active; if(!a) return;
+  const el=Date.now()-a.start;
+  if(el < CANCEL_MS) return cancelSession();
+  if(el < CHRONO_MIN*60000){
+    modal(`<h3>Terminer maintenant ?</h3><p>Moins de ${CHRONO_MIN} min (${mmss(el,true)}) : ton arbre ne survivra pas.</p>`,
+      [{label:'Continuer',cls:'light'},{label:'Terminer',cls:'danger',fn:()=>S.active&&kill(`La session a duré moins de ${CHRONO_MIN} minutes.`)}]);
+  } else complete();
+};
+
+/* Pauses Pomodoro */
+function tickBreak(){
+  const b=S.brk; if(!b) return;
+  const el=Date.now()-b.start, tot=b.duration*60000;
+  if(el>=tot){ endBreak(); return; }
+  document.body.classList.add('focusing','breaking');
+  $('#time').textContent = mmss(tot-el);
+  $('#phase').textContent = `${b.long?'☕ Pause longue':'☕ Pause'} · ${S.cycle} cycle${S.cycle>1?'s':''} terminé${S.cycle>1?'s':''}`;
+  $('#quote').textContent = 'Lève-toi, bois un verre d\'eau, regarde au loin.';
+  $('#ringSvg').innerHTML = ringMarkup(el/tot, false, '#9fd8f2');
+  if(!$('#ringTree .cup')) $('#ringTree').innerHTML = '<div class="cup">☕</div>';
+  showBtns(['skipBtn','stopBtn']);
+}
+function endBreak(skipped){
+  const b=S.brk; if(!b) return;
+  S.brk=null; save();
+  if(!skipped) chime();
+  document.body.classList.remove('breaking');
+  if(S.settings.auto){ S.mode='timer'; startFocus(); toast(`🍅 Cycle ${S.cycle+1} : c'est reparti !`); }
+  else {
+    exitFocus();
+    modal(`<h3>Pause terminée</h3><p>Prêt pour le cycle ${S.cycle+1} ?</p>`,
+      [{label:'Arrêter',cls:'light',fn:stopPomo},{label:'Planter',fn:()=>{ unlockAudio(); S.mode='timer'; startFocus(); }}]);
+  }
+}
+function stopPomo(){ S.brk=null; S.cycle=0; save(); exitFocus(); }
+$('#skipBtn').onclick = ()=>endBreak(true);
+$('#stopBtn').onclick = ()=>modal(`<h3>Arrêter le Pomodoro ?</h3><p>Tes arbres sont déjà dans ta forêt. Le compteur de cycles repart à zéro.</p>`,
+  [{label:'Continuer',cls:'light'},{label:'Arrêter',cls:'danger',fn:stopPomo}]);
+
+/* Objectif quotidien & succès */
+const todayMins = () => inRange(getRange('day', new Date())).filter(x=>x.ok).reduce((t,x)=>t+x.focused,0);
+function renderGoal(){
+  const m=todayMins(), g=S.settings.goal, done=m>=g, st=streaks();
+  $('#goalBox').className = 'goal idle-only'+(done?' done':'');
+  $('#goalBox').innerHTML = `<div class="top"><span>🎯 Objectif du jour</span><b>${Math.round(m)} / ${g} min${done?' ✓':''}</b></div>
+    <div class="track"><i style="width:${Math.min(100,m/g*100).toFixed(1)}%"></i></div>
+    <div class="top" style="margin:7px 0 0;font-size:12px;color:var(--muted)"><span>🔥 Série : ${st.cur} jour${st.cur>1?'s':''}</span><span>${Object.keys(S.ach).length}/${ACH.length} succès</span></div>`;
+}
+function achCtx(){
+  const ok=S.sessions.filter(x=>x.ok), st=streaks(), byDay={};
+  S.sessions.forEach(x=>{ const k=dayKey(new Date(x.start)); const d=byDay[k]=byDay[k]||{ok:0,dead:0}; x.ok?d.ok++:d.dead++; });
+  const hr = t => new Date(t).getHours();
+  return {
+    trees: ok.length, hours: ok.reduce((t,x)=>t+x.focused,0)/60, best: st.best,
+    maxSess: Math.max(0,...ok.map(x=>x.focused)), maxChrono: Math.max(0,...ok.filter(x=>x.mode==='chrono').map(x=>x.focused)),
+    early: ok.some(x=>hr(x.end)<8) ? 1:0, night: ok.some(x=>hr(x.end)>=23 || hr(x.end)<4) ? 1:0,
+    goalDays: Object.keys(S.goalDays).length, owned: S.unlocked.length, maxCycle: S.maxCycle,
+    species: new Set(ok.map(x=>x.tree)).size, big: ok.filter(x=>stageOf(x)===3).length, perfect: Object.values(byDay).some(d=>d.ok>=3&&!d.dead) ? 1:0
+  };
+}
+const ACH = [
+  {id:'first',    icon:'🌱', name:'Première graine',   desc:'Réussir ta première session',          reward:10,  prog:c=>[c.trees,1]},
+  {id:'trees10',  icon:'🌳', name:'Bosquet',           desc:'Faire pousser 10 arbres',              reward:30,  prog:c=>[c.trees,10]},
+  {id:'trees50',  icon:'🌲', name:'Petit bois',        desc:'Faire pousser 50 arbres',              reward:100, prog:c=>[c.trees,50]},
+  {id:'trees100', icon:'🏞️', name:'Vraie forêt',       desc:'Faire pousser 100 arbres',             reward:250, prog:c=>[c.trees,100]},
+  {id:'h10',      icon:'⏳', name:'10 heures',         desc:'10 h de concentration au total',       reward:50,  prog:c=>[c.hours,10]},
+  {id:'h50',      icon:'⌛', name:'50 heures',         desc:'50 h de concentration au total',       reward:150, prog:c=>[c.hours,50]},
+  {id:'h100',     icon:'🏆', name:'Centurion',         desc:'100 h de concentration au total',      reward:400, prog:c=>[c.hours,100]},
+  {id:'marathon', icon:'🏃', name:'Marathon',          desc:'Une session de 90 min ou plus',        reward:50,  prog:c=>[c.maxSess,90]},
+  {id:'chrono60', icon:'⏱️', name:'Sans limite',       desc:'Une heure en mode chrono',             reward:40,  prog:c=>[c.maxChrono,60]},
+  {id:'pomo4',    icon:'🍅', name:'Tomate mûre',       desc:'4 cycles Pomodoro d\'affilée',         reward:50,  prog:c=>[c.maxCycle,4]},
+  {id:'early',    icon:'🌅', name:'Lève-tôt',          desc:'Finir une session avant 8 h',          reward:30,  prog:c=>[c.early,1]},
+  {id:'night',    icon:'🦉', name:'Oiseau de nuit',    desc:'Finir une session après 23 h',         reward:30,  prog:c=>[c.night,1]},
+  {id:'streak3',  icon:'🔥', name:'Ça chauffe',        desc:'3 jours d\'affilée',                   reward:30,  prog:c=>[c.best,3]},
+  {id:'streak7',  icon:'📅', name:'Semaine parfaite',  desc:'7 jours d\'affilée',                   reward:80,  prog:c=>[c.best,7]},
+  {id:'streak30', icon:'💎', name:'Inarrêtable',       desc:'30 jours d\'affilée',                  reward:300, prog:c=>[c.best,30]},
+  {id:'goal1',    icon:'🎯', name:'Dans le mille',     desc:'Atteindre ton objectif quotidien',     reward:20,  prog:c=>[c.goalDays,1]},
+  {id:'goal7',    icon:'🏹', name:'Tireur d\'élite',   desc:'Atteindre ton objectif 7 jours',       reward:100, prog:c=>[c.goalDays,7]},
+  {id:'perfect',  icon:'✨', name:'Journée sans faute', desc:'3 arbres ou plus, aucun mort, le même jour', reward:40, prog:c=>[c.perfect,1]},
+  {id:'majestic', icon:'🌳', name:'Arbre majestueux', desc:'Faire pousser un arbre jusqu\x27au stade 3 (75 min)', reward:50, prog:c=>[c.big,1]},
+  {id:'grove3', icon:'👑', name:'Bosquet royal', desc:'10 arbres au stade 3', reward:150, prog:c=>[c.big,10]},
+  {id:'variety',  icon:'🎨', name:'Botaniste',         desc:'Planter 5 espèces différentes',        reward:40,  prog:c=>[c.species,5]},
+  {id:'collect',  icon:'🗝️', name:'Collectionneur',    desc:'Débloquer toutes les espèces',         reward:300, prog:c=>[c.owned,TREES.length]},
+];
+function checkAch(){
+  const c=achCtx(), out=[];
+  ACH.forEach(a=>{ if(S.ach[a.id]) return; const [v,t]=a.prog(c); if(v>=t){ S.ach[a.id]=Date.now(); S.coins+=a.reward; out.push(a); } });
+  return out;
+}
+function rewards(){
+  const out=[], k=dayKey(new Date());
+  if(!S.goalDays[k] && todayMins()>=S.settings.goal){ S.goalDays[k]=1; S.coins+=GOAL_BONUS; out.push(`🎯 Objectif du jour atteint ! +${GOAL_BONUS} pièces`); }
+  checkAch().forEach(a=>out.push(`${a.icon} Succès débloqué : ${a.name} · +${a.reward} pièces`));
+  return out;
+}
+
+/* Mode strict : détection de sortie de l'app */
+function checkReturn(){
+  const a=S.active; if(!a) return;
+  if(a.hiddenAt){
+    const gap=Date.now()-a.hiddenAt, graceMs=S.settings.grace*1000, endT=a.duration?a.start+a.duration*60000:Infinity;
+    delete a.hiddenAt; save();
+    if(S.settings.strict && gap>graceMs && endT>a.hiddenAt0+graceMs){ kill(`Tu as quitté l'app pendant ${Math.round(gap/1000)} s.`); return; }
+  }
+  tick(true);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(S.brk && !document.hidden){ tickBreak(); return; }
+  if(!S.active) return;
+  if(document.hidden){ S.active.hiddenAt=S.active.hiddenAt0=Date.now(); save(); }
+  else { checkReturn(); requestWake(); }
+});
+
+/* =========================================================
+   Forêt
+   ========================================================= */
+const RANGES=[['day','Jour'],['week','Semaine'],['month','Mois'],['year','Année']];
+const F={range:'day', ref:new Date()}, ST={range:'week', ref:new Date()};
+function setupRange(prefix, st, render){
+  const seg=$(`#${prefix}Seg`);
+  seg.innerHTML = RANGES.map(([id,l])=>`<button data-r="${id}">${l}</button>`).join('');
+  seg.onclick = ev=>{ const b=ev.target.closest('button'); if(!b) return; st.range=b.dataset.r; st.ref=new Date(); render(); };
+  $(`#${prefix}Prev`).onclick = ()=>{ st.ref=shiftRef(st.range,st.ref,-1); render(); };
+  $(`#${prefix}Next`).onclick = ()=>{ st.ref=shiftRef(st.range,st.ref,1); render(); };
+}
+function paintRange(prefix, st){
+  const rg=getRange(st.range, st.ref);
+  $(`#${prefix}Seg`).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===st.range));
+  $(`#${prefix}Lbl`).textContent = rangeLabel(st.range, rg);
+  $(`#${prefix}Next`).disabled = rg.e > new Date();
+  return rg;
+}
+setupRange('f', F, ()=>renderForest());
+setupRange('s', ST, ()=>renderStats());
+
+function islandSVG(list, seed){
+  const n=Math.max(4, Math.ceil(Math.sqrt(list.length))), tw=72, th=36, D=34;
+  const treeW=tw*0.92, treeH=treeW*1.2, x0=n*tw/2+6, y0=treeH*0.82;
+  const W=n*tw+12, H=y0+n*th+D+16;
+  const cells=[]; for(let i=0;i<n;i++) for(let j=0;j<n;j++) cells.push([i,j]);
+  const r=rng(seed); for(let k=cells.length-1;k>0;k--){ const m=Math.floor(r()*(k+1)); [cells[k],cells[m]]=[cells[m],cells[k]]; }
+  const L=[x0-n*tw/2, y0+n*th/2], T=[x0,y0], R2=[x0+n*tw/2, y0+n*th/2], B=[x0, y0+n*th];
+  const P = (a,b,t,dy=0) => [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t+dy];
+  const pt = p => `${f1(p[0])},${f1(p[1])}`;
+  const gr = rng(seed+'ground');
+  /* bande ondulée le long d'une arête (a→b), entre deux profondeurs */
+  const steps = n*8;
+  /* ligne ondulée le long d'une arête (a→b) à la profondeur dy */
+  const wline = (a,b,dy,amp,freq,ph) => Array.from({length:steps+1},(_,i)=>{ const t=i/steps; return P(a,b,t,dy+Math.sin(t*Math.PI*freq+ph)*amp); });
+  /* bande entre une ligne ondulée (haut) et le bas droit de la face */
+  const band = (a,b,dyTop,amp,freq,ph) => 'M'+wline(a,b,dyTop,amp,freq,ph).map(pt).join(' L')+' L'+pt(P(a,b,1,D))+' L'+pt(P(a,b,0,D))+'Z';
+  let g = ell(x0, B[1]+D+2, n*tw*.46, 10, 'url(#gr-shadow)');
+  /* faces de terre */
+  g += pth(`M${pt(L)} L${pt(B)} L${pt(P(B,B,0,D))} L${pt(P(L,L,0,D))}Z`, GV('soilL'));
+  g += pth(`M${pt(R2)} L${pt(B)} L${pt(P(B,B,0,D))} L${pt(P(R2,R2,0,D))}Z`, GV('soilR'));
+  [[L,B,'#5a3820','#d8b98c','#c9a676'],[B,R2,'#6e4728','#e6c99c','#d6b585']].forEach(([a,b,line,sand,sand2],fi)=>{
+    /* strate sombre au milieu, couche sableuse en bas */
+    g += strk('M'+wline(a,b,D*.42,1.6,n*2.2,fi).map(pt).join(' L'), line, 1.4, .35);
+    g += pth(band(a,b,D*.72,2,n*2.6,fi*2), sand);
+    g += pth(band(a,b,D*.87,1.4,n*3.4,fi*3+1), sand2);
+    /* cailloux et racines */
+    for(let k=0;k<n*3;k++){ const t=.04+gr()*.92, dd=.3+gr()*.36, [x,y]=P(a,b,t,D*dd), rx=1.4+gr()*2.2;
+      g += ell(x,y+.6,rx,rx*.62,'#3b2412',0,OP(.35)) + ell(x,y,rx,rx*.62,fi?'#b49a7c':'#9c8268') + ell(x-rx*.3,y-rx*.2,rx*.4,rx*.2,'#e6d6c0',0,OP(.6)); }
+    for(let k=0;k<n;k++){ const t=.08+gr()*.84, [x,y]=P(a,b,t,8); g += strk(`M${f1(x)} ${f1(y)} q${f1(gr()*3-1.5)} 4 ${f1(gr()*4-2)} ${f1(6+gr()*5)}`, '#3e2614', .9, .45); }
+  });
+  /* herbe qui déborde sur les flancs (bord festonné) */
+  [[L,B],[B,R2]].forEach(([a,b],fi)=>{
+    let d='M'+pt(a)+' L'+pt(b);
+    const sc=n*5;
+    for(let i=sc;i>=0;i--){ const t=i/sc, [x,y]=P(a,b,t,0), dep=5+Math.sin(t*Math.PI*n*1.3+fi)*2.2;
+      if(i<sc){ const [xp,yp]=P(a,b,(i+.5)/sc,0); d+=` Q${f1(xp)} ${f1(yp+dep+3.4)} ${f1(x)} ${f1(y+dep)}`; } else d+=` L${f1(x)} ${f1(y+dep)}`; }
+    g += pth(d+'Z', fi? '#5aae43':'#4c9a3a');
+    /* petites fleurs accrochées au bord */
+    for(let k=0;k<n*2;k++){ const t=.05+gr()*.9, [x,y]=P(a,b,t,4+gr()*3); g += circ(x,y,1.2,['#fff','#ffe066','#ffc2d9'][k%3]) + circ(x,y,.45,'#f5a623'); }
+  });
+  /* dessus herbeux */
+  g += pth(`M${pt(T)} L${pt(R2)} L${pt(B)} L${pt(L)}Z`, GV('grassTop'));
+  g += strk(`M${pt(L)} L${pt(B)} L${pt(R2)}`, '#d6f5b0', 1.2, .55);
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) if((i+j)%2){
+    const cx=x0+(i-j)*tw/2, cy=y0+(i+j)*th/2;
+    g += `<polygon points="${cx},${cy} ${cx+tw/2},${cy+th/2} ${cx},${cy+th} ${cx-tw/2},${cy+th/2}" fill="#fff" opacity=".06"/>`;
+  }
+  /* touffes, fleurs, cailloux sur l'herbe */
+  const topPt = () => { const u=.2+gr()*(n-.4), v=.2+gr()*(n-.4); return [x0+(u-v)*tw/2, y0+(u+v)*th/2]; };
+  for(let k=0;k<n*n*3;k++){
+    const [x,y]=topPt(), kind=gr();
+    if(kind<.55) g += strk(`M${f1(x-2.2)} ${f1(y)} q.4 -2.6 -.6 -4.4 M${f1(x)} ${f1(y)} q0 -3 .6 -5.4 M${f1(x+2.2)} ${f1(y)} q-.4 -2.6 .8 -4.2`, kind<.3?'#4c9a3a':'#5fae47', .9, .9);
+    else if(kind<.85){ const c=['#ffffff','#ffe066','#ffb3cf','#c9a8ff','#ff9b7a'][Math.floor(gr()*5)]; g += strk(`M${f1(x)} ${f1(y)} l0 -3`, '#4c9a3a', .7) + [0,90,180,270].map(a=>circ(x+Math.cos(a*Math.PI/180)*1.1, y-3.4+Math.sin(a*Math.PI/180)*.7, .95, c)).join('') + circ(x,y-3.4,.55,'#f5a623'); }
+    else g += ell(x,y,2,1.1,'#a7b0a4') + ell(x-.5,y-.4,.8,.4,'#e8eee6',0,OP(.8));
+  }
+  /* arbres, du fond vers l'avant */
+  const placed = list.map((s,k)=>({s, i:cells[k][0], j:cells[k][1]})).sort((a,b)=>(a.i+a.j)-(b.i+b.j));
+  placed.forEach(({s,i,j})=>{
+    const cx=x0+(i-j)*tw/2, cy=y0+(i+j)*th/2+th/2;
+    g+=`<svg data-sid="${s.id}" x="${f1(cx-treeW/2)}" y="${f1(cy-treeH*0.92)}" width="${f1(treeW)}" height="${f1(treeH)}" viewBox="0 0 100 120" style="cursor:pointer">${treeSVG(s.tree,stageOf(s),!s.ok)}</svg>`;
+  });
+  return `<svg class="island" viewBox="0 0 ${f1(W)} ${f1(H)}">${g}</svg>`;
+}
+function sessRow(s, del){
+  const tg=tagOf(s.tag), d=new Date(s.start);
+  const when = d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  return `<div class="sess">${treeEl(s.tree,stageOf(s),!s.ok)}<div class="m"><div class="t">${TREE[s.tree]?.name||'Arbre'}${s.ok?'':' (mort)'}</div><div class="s"><span class="dot" style="background:${tg.color}"></span> ${tg.name} · ${when}</div></div><div class="d">${fmtDur(s.focused)}</div>${del?`<button class="del" data-del="${s.id}" title="Supprimer">×</button>`:''}</div>`;
+}
+function renderForest(){
+  const rg=paintRange('f',F), list=inRange(rg).sort((a,b)=>a.start-b.start);
+  const ok=list.filter(x=>x.ok), dead=list.length-ok.length, mins=ok.reduce((t,x)=>t+x.focused,0);
+  $('#island').innerHTML = islandSVG(list, F.range+dayKey(rg.s)) + (list.length?'':'<div class="empty" style="position:absolute;left:0;right:0;bottom:12px">Aucun arbre sur cette période. Plante ta première graine !</div>');
+  $('#fSum').innerHTML = `<div><b>${ok.length}</b>arbres</div><div><b>${dead}</b>morts</div><div><b>${fmtDur(mins)}</b>concentré</div>`;
+  $('#fList').innerHTML = list.length ? list.slice().reverse().map(s=>sessRow(s,true)).join('') : '<div class="empty">Rien pour l\'instant.</div>';
+}
+$('#island').onclick = ev=>{
+  const t=ev.target.closest('[data-sid]'); if(!t) return;
+  const s=S.sessions.find(x=>x.id===t.dataset.sid); if(!s) return;
+  const d=new Date(s.start);
+  toast(`${TREE[s.tree]?.name||'Arbre'} · ${fmtDur(s.focused)} · ${tagOf(s.tag).name} · ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}${s.ok?'':' · mort'}`);
+};
+$('#fList').onclick = ev=>{
+  const b=ev.target.closest('[data-del]'); if(!b) return;
+  modal(`<h3>Supprimer cet arbre ?</h3><p>Il disparaîtra de ta forêt et de tes stats (les pièces gagnées sont conservées).</p>`,
+    [{label:'Annuler',cls:'light'},{label:'Supprimer',cls:'danger',fn:()=>{ S.sessions=S.sessions.filter(x=>x.id!==b.dataset.del); save(); renderForest(); }}]);
+};
+
+/* =========================================================
+   Stats
+   ========================================================= */
+function buckets(r,{s,e},list){
+  let n, idx, lab;
+  if(r==='day'){ n=24; idx=d=>d.getHours(); lab=i=>i%6===0?i+'h':''; }
+  else if(r==='week'){ n=7; idx=d=>(d.getDay()+6)%7; lab=i=>['L','M','M','J','V','S','D'][i]; }
+  else if(r==='month'){ n=Math.round((e-s)/864e5); idx=d=>d.getDate()-1; lab=i=>(i===0||(i+1)%5===0)?String(i+1):''; }
+  else { n=12; idx=d=>d.getMonth(); lab=i=>'JFMAMJJASOND'[i]; }
+  const v=Array(n).fill(0); list.filter(x=>x.ok).forEach(x=>v[idx(new Date(x.start))]+=x.focused);
+  return {v, lab};
+}
+function streaks(){
+  const days=new Set(S.sessions.filter(x=>x.ok).map(x=>dayKey(new Date(x.start))));
+  const sorted=[...days].map(k=>{const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d);}).sort((a,b)=>a-b);
+  let best=0, run=0, prev=null;
+  sorted.forEach(d=>{ if(prev){ const n=new Date(prev); n.setDate(n.getDate()+1); run = dayKey(n)===dayKey(d) ? run+1 : 1; } else run=1; best=Math.max(best,run); prev=d; });
+  let cur=0, d=startOfDay(new Date());
+  if(!days.has(dayKey(d))) d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){ cur++; d.setDate(d.getDate()-1); }
+  return {cur,best};
+}
+function hbars(rows, total){
+  if(!rows.length) return '<div class="empty">Pas encore de données.</div>';
+  return rows.map(r=>`<div class="hbar"><div class="top"><span><span class="dot" style="background:${r.color}"></span> ${r.name}</span><span>${fmtDur(r.v)} · ${Math.round(r.v/total*100)}%</span></div><div class="track"><i style="width:${(r.v/rows[0].v*100).toFixed(1)}%;background:${r.color}"></i></div></div>`).join('');
+}
+function renderStats(){
+  const rg=paintRange('s',ST), list=inRange(rg), ok=list.filter(x=>x.ok);
+  const mins=ok.reduce((t,x)=>t+x.focused,0), rate=list.length?Math.round(ok.length/list.length*100):0;
+  const avg = ok.length ? mins/ok.length : 0;
+  $('#sCards').innerHTML = [
+    ['Temps concentré', fmtDur(mins)], ['Arbres plantés', ok.length],
+    ['Taux de réussite', list.length?rate+' %':'—'], ['Durée moyenne', ok.length?fmtDur(avg):'—']
+  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  const {v,lab}=buckets(ST.range,rg,list), mx=Math.max(...v,1);
+  $('#sBars').innerHTML = v.map((x,i)=>`<div class="b" title="${fmtDur(x)}"><i class="${x?'':'zero'}" style="height:${x?Math.max(3,x/mx*100):1}%"></i><span>${lab(i)}</span></div>`).join('');
+  const byTag={}; ok.forEach(x=>byTag[x.tag]=(byTag[x.tag]||0)+x.focused);
+  $('#sTags').innerHTML = hbars(Object.entries(byTag).map(([id,v])=>({name:tagOf(id).name,color:tagOf(id).color,v})).sort((a,b)=>b.v-a.v), mins);
+  const byTree={}; ok.forEach(x=>byTree[x.tree]=(byTree[x.tree]||0)+1);
+  $('#sTrees').innerHTML = Object.keys(byTree).length ? Object.entries(byTree).sort((a,b)=>b[1]-a[1]).map(([id,n])=>
+    `<div class="sess">${treeEl(id,3)}<div class="m"><div class="t">${TREE[id]?.name||id}</div></div><div class="d">× ${n}</div></div>`).join('') : '<div class="empty">Pas encore de données.</div>';
+  const all=S.sessions.filter(x=>x.ok), st=streaks();
+  $('#sAll').innerHTML = [
+    ['Temps total', fmtDur(all.reduce((t,x)=>t+x.focused,0))], ['Arbres vivants', all.length],
+    ['Série actuelle', st.cur+' j 🔥'], ['Meilleure série', st.best+' j']
+  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  const c=achCtx();
+  $('#achTitle').textContent = `Succès · ${Object.keys(S.ach).length}/${ACH.length}`;
+  $('#sAch').innerHTML = ACH.map(a=>{
+    const [v,t]=a.prog(c), done=!!S.ach[a.id], pct=Math.min(100, v/t*100);
+    const val = x => String(Math.round(x*10)/10).replace('.', ',');
+    return `<div class="a ${done?'':'lock'}"><div class="ic">${a.icon}</div><div class="nm">${a.name}</div><div class="ds">${a.desc}</div>
+      ${done ? `<div class="pr"><span>✓ ${new Date(S.ach[a.id]).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</span><span>+${a.reward}</span></div>`
+             : `<div class="mini"><i style="width:${pct.toFixed(1)}%"></i></div><div class="pr"><span>${val(Math.min(v,t))} / ${t}</span><span><span class="coin" style="width:11px;height:11px;vertical-align:-1px"></span> ${a.reward}</span></div>`}</div>`;
+  }).join('');
+}
+
+/* =========================================================
+   Arbres (boutique)
+   ========================================================= */
+function renderShop(){
+  renderCoins();
+  $('#shop').innerHTML = TREES.map(t=>{
+    const own=S.unlocked.includes(t.id), sel=S.tree===t.id;
+    return `<button class="item ${sel?'sel':''} ${own?'':'locked'}" data-id="${t.id}">${treeEl(t.id,3,false,1,true)}<div class="n">${t.name}</div>
+      <div class="p">${sel?'✓ Choisi':own?'Possédé':`<span class="coin" style="width:13px;height:13px"></span>${t.price}`}</div></button>`;
+  }).join('');
+}
+$('#shop').onclick = ev=>{
+  const b=ev.target.closest('.item'); if(!b) return;
+  const t=TREE[b.dataset.id];
+  if(S.unlocked.includes(t.id)){ S.tree=t.id; save(); renderShop(); toast(`${t.name} sélectionné`); return; }
+  if(S.coins<t.price){ toast(`Il te manque ${t.price-S.coins} pièces 🌱`); return; }
+  modal(`<div class="stages">${[1,2,3].map(i=>`<div>${treeEl(t.id,i,false,1,true)}<span>${i*25} min</span></div>`).join("")}</div><h3>Débloquer ${t.name} ?</h3><p>Coût : ${t.price} pièces (tu en as ${S.coins}).</p>`,
+    [{label:'Annuler',cls:'light'},{label:'Débloquer',fn:()=>{ S.coins-=t.price; S.unlocked.push(t.id); S.tree=t.id; const got=checkAch(); save(); renderShop(); toast(`${t.name} débloqué !`); got.forEach(a=>setTimeout(()=>toast(`${a.icon} Succès : ${a.name} · +${a.reward}`),2300)); }}]);
+};
+
+/* =========================================================
+   Réglages
+   ========================================================= */
+function renderSettings(){
+  $('#setStrict').checked=S.settings.strict; $('#setSound').checked=S.settings.sound; $('#setWake').checked=S.settings.wake;
+  $('#setGrace').value=S.settings.grace; $('#graceLbl').textContent=S.settings.grace;
+  $('#setGoal').value=S.settings.goal; $('#setShort').value=S.settings.short; $('#setLong').value=S.settings.long;
+  $('#setEvery').value=S.settings.every; $('#setAuto').checked=S.settings.auto;
+  $('#tagMgr').innerHTML = S.tags.map(t=>`<div class="row"><div style="display:flex;align-items:center;gap:10px"><span class="dot" style="background:${t.color};width:14px;height:14px"></span>${t.name}</div><button class="sess del" data-tdel="${t.id}" style="border:0;background:none;font-size:20px;color:var(--muted)">×</button></div>`).join('') +
+    `<div class="row"><input type="text" id="newTag" placeholder="Nouvelle étiquette" maxlength="20" style="flex:1;min-width:0"><input type="color" id="newTagCol" value="#3f8f5a"><button class="btn sm" id="addTag">Ajouter</button></div>`;
+}
+$('#setStrict').onchange=ev=>{ S.settings.strict=ev.target.checked; save(); };
+$('#setSound').onchange=ev=>{ S.settings.sound=ev.target.checked; save(); };
+$('#setWake').onchange=ev=>{ S.settings.wake=ev.target.checked; save(); };
+$('#setGrace').onchange=ev=>{ S.settings.grace=Math.max(0,Math.min(120,parseInt(ev.target.value)||0)); save(); renderSettings(); };
+const numSetting = (id, key, lo, hi) => $(id).onchange = ev => { S.settings[key]=Math.max(lo,Math.min(hi,parseInt(ev.target.value)||lo)); save(); renderSettings(); };
+numSetting('#setGoal','goal',10,600); numSetting('#setShort','short',1,30); numSetting('#setLong','long',1,60); numSetting('#setEvery','every',2,10);
+$('#setAuto').onchange=ev=>{ S.settings.auto=ev.target.checked; save(); };
+$('#tagMgr').onclick=ev=>{
+  const d=ev.target.closest('[data-tdel]');
+  if(d){ if(S.tags.length<=1) return toast('Garde au moins une étiquette'); S.tags=S.tags.filter(t=>t.id!==d.dataset.tdel); if(S.tag===d.dataset.tdel) S.tag=S.tags[0].id; save(); renderSettings(); return; }
+  if(ev.target.id==='addTag'){
+    const name=$('#newTag').value.trim(); if(!name) return;
+    const id='t'+Date.now().toString(36); S.tags.push({id,name,color:$('#newTagCol').value}); save(); renderSettings();
+  }
+};
+$('#exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}), a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`bosquet-${dayKey(new Date())}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
+$('#importInp').onchange=async ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(!Array.isArray(d.sessions)) throw 0;
+    modal(`<h3>Remplacer tes données ?</h3><p>${d.sessions.length} sessions dans la sauvegarde. Tes données actuelles seront remplacées.</p>`,
+      [{label:'Annuler',cls:'light'},{label:'Importer',fn:()=>{ localStorage.setItem(STORE,JSON.stringify(d)); S=load(); S.active=null; save(); toast('Sauvegarde importée'); go('forest'); }}]);
+  }catch(e){ toast('Fichier invalide'); }
+  ev.target.value='';
+};
+$('#resetBtn').onclick=()=>modal(`<h3>Tout effacer ?</h3><p>Forêt, stats, pièces et arbres débloqués seront supprimés définitivement. Pense à exporter avant.</p>`,
+  [{label:'Annuler',cls:'light'},{label:'Tout effacer',cls:'danger',fn:()=>{ localStorage.removeItem(STORE); S=load(); save(); go('plant'); toast('Données effacées'); }}]);
+
+/* =========================================================
+   Démarrage
+   ========================================================= */
+if(checkAch().length) save();
+renderPlant();
+if(S.active){
+  if(S.active.hiddenAt){ checkReturn(); }
+  if(S.active) enterFocus();
+} else if(S.brk){
+  if(Date.now()-S.brk.start >= S.brk.duration*60000){ S.brk=null; save(); toast('Ta pause est terminée'); }
+  else enterFocus();
+}
+if('serviceWorker' in navigator && location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
